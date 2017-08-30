@@ -15,18 +15,19 @@ haxe:
   - "3.4.0"
   - development
 
-#matrix:
-#  # Allow Haxe development to fail.
-#  allow_failures:
-#    - haxe: development
+matrix:
+  # Allow Haxe development to fail.
+  allow_failures:
+    - haxe: development
 
-#addons:
-#  # This is the preferred way to install apt packages.
-#  # However, it only allow some but not all packages.
-#  # Alternatively, we can use `sudo apt-get install ...` in the `install:` section.
-#  # http://docs.travis-ci.com/user/apt/#Adding-APT-Packages
-#  apt:
-#    packages:
+addons:
+  # This is the preferred way to install apt packages.
+  # However, it only allow some but not all packages.
+  # Alternatively, we can use `sudo apt-get install ...` in the `install:` section.
+  # http://docs.travis-ci.com/user/apt/#Adding-APT-Packages
+  apt:
+    packages:
+      - yarn
 #      # C++ (for rebuilding hxcpp)
 #      - gcc-multilib
 #      - g++-multilib
@@ -62,20 +63,16 @@ install:
   #  fi
   #- haxelib install hxjava
   #- haxelib install hxcs
-  - yes | haxelib install all
+  - yes | haxelib install hmm
+  - haxelib run hmm setup
+  - hmm install
   - yes | haxelib install dox
   - haxelib list
 
 script:
-  - haxe test.hxml
+  - haxe client_enthralerdotcom.hxml
   #           && haxe phantomjs/run.hxml bin/HelloWorld.js
-  - haxe apiDocs.hxml
-  - haxe enthralerFrame.hxml
-  - haxe enthralerHost.hxml
-  #- haxe build-neko.hxml         && neko bin/HelloWorld.n
-  #- haxe build-java.hxml         && java -jar bin/HelloWorld.jar
-  #- haxe build-php.hxml          && php bin/index.php
-  #- haxe build-cs.hxml           && mono bin/bin/HelloWorld.exe
-  #- haxe build-flash.hxml -D fdb && haxe flash/run.hxml bin/HelloWorld.swf
-  #- haxe build-cpp.hxml          && ./bin/HelloWorld
-  #- haxe build-python.hxml       && python3 bin/HelloWorld.py
+  - haxe server_enthralerdotcom.hxml
+  #           && php bin/index.php
+  - yarn
+  - yarn webpack
