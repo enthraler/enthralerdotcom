@@ -1,9 +1,8 @@
 {
-  "name": "enthraler",
+  "name": "enthralerdotcom",
   "version": "0.1.0",
-  "description": "A Javascript client library for rendering Enthralers (interactive components) inside your document.",
-  "main": "dist/index.js",
-  "repository": "https://github.com/enthraler/enthraler.git",
+  "description": "The website that powers enthraler.com",
+  "repository": "https://github.com/enthraler/enthralerdotcom.git",
   "author": "Jason O'Neil <jason.oneil@gmail.com>",
   "license": "MIT",
   "scripts": {
@@ -17,10 +16,8 @@
     "codemirror": "^5.27.2",
     "font-awesome": "^4.7.0",
     "jsonlint": "^1.6.2",
-    "promise-polyfill": "^6.0.2",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2",
-    "whatwg-fetch": "^2.0.1"
+    "react-dom": "^15.4.2"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",

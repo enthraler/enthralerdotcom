@@ -1,6 +1,0 @@
--lib buddy
--cp src
--cp src/externs
--cp test/
--js test/bin/EnthralerTest.js
--main EnthralerTest

@@ -4,7 +4,6 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
     entry: {
-        polyfills: "./polyfills/polyfills.js",
         enthralerdotcom: "./client_enthralerdotcom.hxml",
         // The following do not actually generate JS.
         // We just use webpack to monitor them and build.

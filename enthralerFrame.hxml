@@ -1,4 +1,0 @@
--cp src
--cp src/externs
--main EnthralerFrame
--js bin/enthraler.js
