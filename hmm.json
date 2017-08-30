@@ -16,6 +16,13 @@
       "version": null
     },
     {
+      "name": "enthraler",
+      "type": "git",
+      "dir": "src",
+      "ref": "master",
+      "url": "git@github.com:enthraler/enthraler.git"
+    },
+    {
       "name": "haxe-loader",
       "type": "haxelib",
       "version": null

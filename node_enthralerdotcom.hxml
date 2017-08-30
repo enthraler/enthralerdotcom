@@ -13,6 +13,7 @@
 -lib objectinit
 -lib haxe-loader
 -lib hxnodejs
+-lib enthraler
 -cp src
 -cp node_modules/haxe-loader/haxelib
 -main enthralerdotcom.Server

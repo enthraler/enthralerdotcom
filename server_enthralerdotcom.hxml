@@ -12,6 +12,7 @@
 -lib markdown
 -lib objectinit
 -lib haxe-loader
+-lib enthraler
 -cp src
 -cp node_modules/haxe-loader/haxelib
 -main enthralerdotcom.Server
