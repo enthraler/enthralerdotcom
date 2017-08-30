@@ -27,7 +27,6 @@ addons:
   # http://docs.travis-ci.com/user/apt/#Adding-APT-Packages
   apt:
     packages:
-      - yarn
 #      # C++ (for rebuilding hxcpp)
 #      - gcc-multilib
 #      - g++-multilib
@@ -40,17 +39,18 @@ addons:
 #      - mono-mcs
 
 install:
-  ## os-specific config
-  #- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-  #    export DISPLAY=:99.0;
-  #    export AUDIODEV=null;
+  # os-specific config
+  - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+      export DISPLAY=:99.0;
+      export AUDIODEV=null;
+      apt install yarn
   #  elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
   #    brew uninstall --force brew-cask;
   #    brew update;
   #    brew install phantomjs;
   #    #brew install mono;
   #    #brew install python3;
-  #  fi
+    fi
   ## Install haxelibs
   #- if [ "${TRAVIS_HAXE_VERSION}" = "development" ]; then
   #    haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git;
