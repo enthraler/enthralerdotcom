@@ -4,5 +4,5 @@
 
 # Running migrations
 
-	phpContainerId=`docker inspect --format="{{.Id}}" enthraler_php_1`
-	docker exec -i $phpContainerId php index.php
+	# Run the command `php index.php` in the "php" container
+	docker-compose exec php php index.php
