@@ -5,14 +5,14 @@ import enthralerdotcom.templates.ManageTemplatesPage;
 using tink.CoreApi;
 import enthralerdotcom.types.*;
 import enthraler.EnthralerPackageInfo;
-import smalluniverse.BackendApi;
+import smalluniverse.*;
 
-class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, {}, ManageTemplatesPageProps> {
+class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, ManageTemplatesPageProps> {
 	public function new() {
 
 	}
 
-	public function get(params):Promise<ManageTemplatesPageProps> {
+	public function get(context):Promise<ManageTemplatesPageProps> {
 		var allTemplates = Template.manager.all();
 		var templates = [];
 		for (tpl in allTemplates) {
@@ -31,7 +31,7 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, {},
 		};
 	}
 
-	public function processAction(params, action:ManageTemplatesAction):Promise<BackendApiResult> {
+	public function processAction(context, action:ManageTemplatesAction):Promise<BackendApiResult> {
 		switch action {
 			case AddGithubRepoAsTemplate(githubUser, githubRepo):
 				return pullTemplateFromGithubRepo(githubUser, githubRepo);
@@ -59,7 +59,7 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, {},
 					// Create a TemplateVersion
 					tagFutures.push(saveVersionInfo(githubUser, githubRepo, tpl, tag));
 				}
-				return Future.ofMany(tagFutures).map(function (_) return Done);
+				return Future.ofMany(tagFutures).map(function (_) return BackendApiResult.Done);
 			});
 	}
 
@@ -119,7 +119,7 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, {},
 				})
 				.next(function (_):BackendApiResult {
 					version.save();
-					return Done;
+					return BackendApiResult.Done;
 				});
 	}
 

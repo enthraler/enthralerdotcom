@@ -1,6 +1,6 @@
 package enthralerdotcom;
 
-import smalluniverse.UniversalPage;
+import smalluniverse.SmallUniverse;
 import js.Browser.window;
 import js.Browser.document;
 
@@ -16,16 +16,16 @@ class Client {
 			var propsElem = document.getElementById('small-universe-props');
 			switch propsElem.getAttribute('data-page') {
 				case 'enthralerdotcom.templates.ManageTemplatesPage':
-					Webpack.async(ManageTemplatesPage).then(function () {
-						UniversalPage.startClientRendering(ManageTemplatesPage, propsElem.innerText);
+					Webpack.load(ManageTemplatesPage).then(function () {
+						SmallUniverse.hydrate(ManageTemplatesPage);
 					});
 				case 'enthralerdotcom.templates.ViewTemplatePage':
-					Webpack.async(ViewTemplatePage).then(function () {
-						UniversalPage.startClientRendering(ViewTemplatePage, propsElem.innerText);
+					Webpack.load(ViewTemplatePage).then(function () {
+						SmallUniverse.hydrate(ViewTemplatePage);
 					});
 				case 'enthralerdotcom.content.ContentEditorPage':
-					Webpack.async(ContentEditorPage).then(function () {
-						UniversalPage.startClientRendering(ContentEditorPage, propsElem.innerText);
+					Webpack.load(ContentEditorPage).then(function () {
+						SmallUniverse.hydrate(ContentEditorPage);
 					});
 				default: null;
 			}

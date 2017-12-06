@@ -1,7 +1,6 @@
 package enthralerdotcom.templates;
 
-import smalluniverse.BackendApi;
-import smalluniverse.BackendApi.Request;
+import smalluniverse.*;
 import enthralerdotcom.templates.ViewTemplatePage;
 using tink.CoreApi;
 #if server
@@ -9,23 +8,26 @@ import enthralerdotcom.content.Content;
 using ObjectInit;
 #end
 
-class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTemplateParams, ViewTemplateProps> {
-	public function new() {
+class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTemplateProps> {
+	var username: String;
+	var repo: String;
 
+	public function new(username: String, repo: String) {
+		this.username = username;
+		this.repo = repo;
 	}
 
-	function getTemplateName(params:ViewTemplateParams) {
-		return '${params.user}/${params.repo}';
+	function getTemplateName() {
+		return '$username/$repo';
 	}
 
-	function getTemplate(params:ViewTemplateParams) {
-		var name = getTemplateName(params);
+	function getTemplate() {
+		var name = getTemplateName();
 		return Template.manager.select($name == name);
 	}
 
-	public function get(req:Request<ViewTemplateParams>):Promise<ViewTemplateProps> {
-		var params = req.params;
-		var tpl = getTemplate(params);
+	public function get(context: SmallUniverseContext):Promise<ViewTemplateProps> {
+		var tpl = getTemplate();
 		var versions = TemplateVersion.manager.search($templateID==tpl.id, {
 			orderBy: [-major, -minor, -patch]
 		});
@@ -45,11 +47,10 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 		return props;
 	}
 
-	public function processAction(req:Request<ViewTemplateParams>, action:ViewTemplateAction):Promise<BackendApiResult> {
-		var params = req.params;
+	public function processAction(context: SmallUniverseContext, action: ViewTemplateAction):Promise<BackendApiResult> {
 		switch action {
 			case CreateNewContent:
-				var tpl = getTemplate(params);
+				var tpl = getTemplate();
 				var version = TemplateVersion.manager.select($templateID==tpl.id, {
 					orderBy: [-major, -minor, -patch]
 				});
@@ -59,7 +60,7 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 				});
 				content.save();
 				trace('Creating content ${content.id}, ${content.guid}');
-				return Redirect('/i/${content.guid}/edit/');
+				return BackendApiResult.Redirect('/i/${content.guid}/edit/');
 		}
 	}
 }

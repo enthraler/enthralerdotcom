@@ -8,7 +8,7 @@ typedef MarkdownProps = {
 	?className:String
 }
 
-class Markdown extends UniversalComponent<MarkdownProps, {}, {}> {
+class Markdown extends UniversalComponent<MarkdownProps, {}> {
 	override public function render() {
 		var data = {
 			__html: this.props.html

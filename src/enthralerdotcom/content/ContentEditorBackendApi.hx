@@ -1,7 +1,6 @@
 package enthralerdotcom.content;
 
-import smalluniverse.BackendApi;
-import smalluniverse.BackendApi.Request;
+import smalluniverse.*;
 import enthralerdotcom.content.ContentEditorPage;
 using tink.CoreApi;
 #if server
@@ -11,14 +10,15 @@ import enthralerdotcom.templates.TemplateVersion;
 using ObjectInit;
 #end
 
-class ContentEditorBackendApi implements BackendApi<ContentEditorAction, ContentEditorParams, ContentEditorProps> {
-	public function new() {
+class ContentEditorBackendApi implements BackendApi<ContentEditorAction, ContentEditorProps> {
+	var guid: String;
 
+	public function new(guid: String) {
+		this.guid = guid;
 	}
 
-	public function get(req:Request<ContentEditorParams>):Promise<ContentEditorProps> {
-		var params = req.params;
-		var content = Content.manager.select($guid == params.guid);
+	public function get(context: SmallUniverseContext):Promise<ContentEditorProps> {
+		var content = Content.manager.select($guid == this.guid);
 		var template = content.template;
 		var latestVersion = content.versions.last();
 		if (latestVersion == null) {
@@ -54,10 +54,10 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 		return props;
 	}
 
-	public function processAction(req:Request<ContentEditorParams>, action:ContentEditorAction):Promise<BackendApiResult> {
+	public function processAction(context:SmallUniverseContext, action:ContentEditorAction):Promise<BackendApiResult> {
 		switch action {
 			case SaveAnonymousVersion(contentId, authorGuid, newContent, templateVersionId, draft):
-				var ipAddress = new IpAddress(req.clientIp);
+				var ipAddress = new IpAddress(@:privateAccess context.request.clientIp);
 				return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newContent, templateVersionId, draft);
 		}
 	}
@@ -98,6 +98,6 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 			published: (draft) ? null : Date.now()
 		});
 		contentVersion.save();
-		return Done;
+		return BackendApiResult.Done;
 	}
 }

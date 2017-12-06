@@ -1,25 +1,26 @@
 package enthralerdotcom.content;
 
-import smalluniverse.BackendApi;
-import smalluniverse.BackendApi.Request;
+import smalluniverse.*;
 import enthralerdotcom.content.ContentViewerPage;
 using tink.CoreApi;
 import enthralerdotcom.content.Content;
 
-class ContentViewerBackendApi implements BackendApi<ContentViewerAction, ContentViewerParams, ContentViewerProps> {
-	public function new() {
+class ContentViewerBackendApi implements BackendApi<ContentViewerAction, ContentViewerProps> {
+	var guid: String;
+
+	public function new(guid: String) {
+		this.guid = guid;
 	}
 
-	public function get(req:Request<ContentViewerParams>):Promise<ContentViewerProps> {
-		var params = req.params;
-		var content = Content.manager.select($guid == params.guid);
+	public function get(context: SmallUniverseContext): Promise<ContentViewerProps> {
+		var content = Content.manager.select($guid == this.guid);
 		var latestVersion = ContentVersion.manager.select($contentID == content.id && $published != null, {orderBy: -published});
 		if (latestVersion == null) {
 			throw new Error(404, 'Content not found');
 		}
 		var templateVersion = latestVersion.templateVersion;
 		var template = templateVersion.template;
-		var embedUrl = 'https://enthraler.com/i/${params.guid}/embed';
+		var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
 		var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
 		var props:ContentViewerProps = {
 			contentVersionId: latestVersion.id,
@@ -34,11 +35,10 @@ class ContentViewerBackendApi implements BackendApi<ContentViewerAction, Content
 		return props;
 	}
 
-	public function processAction(req:Request<ContentViewerParams>, action:ContentViewerAction):Promise<BackendApiResult> {
-		var params = req.params;
+	public function processAction(context: SmallUniverseContext, action: ContentViewerAction): Promise<BackendApiResult> {
 		switch action {
 			case _:
-				return Done;
+				return BackendApiResult.Done;
 		}
 	}
 }

@@ -3,7 +3,7 @@ package enthralerdotcom.components;
 import smalluniverse.UniversalComponent;
 import smalluniverse.SUMacro.jsx;
 
-class HeaderNav extends UniversalComponent<{}, {open:Bool}, {}> {
+class HeaderNav extends UniversalComponent<{}, {open:Bool}> {
 	public function new(props) {
 		super(props);
 		this.state = {

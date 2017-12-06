@@ -26,7 +26,7 @@ enum ManageTemplatesAction {
 	ReloadTemplate(id:Int);
 }
 
-class ManageTemplatesPage extends UniversalPage<ManageTemplatesAction, {}, ManageTemplatesPageProps, {}, {}> {
+class ManageTemplatesPage extends UniversalPage<ManageTemplatesAction, ManageTemplatesPageProps, {}> {
 
 	@:client var repoUrl:String;
 

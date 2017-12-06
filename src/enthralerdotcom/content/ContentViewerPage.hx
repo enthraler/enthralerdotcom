@@ -18,10 +18,6 @@ enum ContentViewerAction {
 	CreateACopy(contentId:Int);
 }
 
-typedef ContentViewerParams = {
-	guid:String
-}
-
 typedef ContentViewerProps = {
 	contentVersionId:Int,
 	templateName:String,
@@ -35,7 +31,7 @@ typedef ContentViewerProps = {
 
 typedef ContentViewerState = {}
 
-class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewerParams, ContentViewerProps, ContentViewerState, {}> {
+class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewerProps, ContentViewerState> {
 
 	public function new(api:ContentViewerBackendApi) {
 		super(api);

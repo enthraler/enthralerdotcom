@@ -18,10 +18,6 @@ enum ContentEditorAction {
 	SaveAnonymousVersion(contentId:Int, authorGuid:String, newContent:String, templateVersionId:Int, draft:Bool);
 }
 
-typedef ContentEditorParams = {
-	guid:String
-}
-
 typedef ContentEditorProps = {
 	template:{
 		name:String,
@@ -49,7 +45,7 @@ typedef ContentEditorState = {
 	schema:PropTypes
 }
 
-class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditorParams, ContentEditorProps, ContentEditorState, {}> {
+class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditorProps, ContentEditorState> {
 
 	@:client var preview:js.html.IFrameElement;
 	@:client function setIframe(iframe) this.preview = iframe;

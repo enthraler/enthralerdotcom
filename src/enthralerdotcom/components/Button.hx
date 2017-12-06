@@ -9,7 +9,7 @@ typedef ButtonProps = {
 	?icon:String,
 }
 
-class Button extends UniversalComponent<ButtonProps, {}, {}> {
+class Button extends UniversalComponent<ButtonProps, {}> {
 	override public function render() {
 		var iconClassName = "fa fa-"+this.props.icon;
 		var icon = (this.props.icon != null) ? jsx('<span className="icon is-small">

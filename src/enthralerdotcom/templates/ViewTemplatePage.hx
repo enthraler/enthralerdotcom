@@ -25,7 +25,7 @@ typedef ViewTemplateProps = {
 	}
 };
 
-class ViewTemplatePage extends UniversalPage<ViewTemplateAction, ViewTemplateParams, ViewTemplateProps, {}, {}> {
+class ViewTemplatePage extends UniversalPage<ViewTemplateAction, ViewTemplateProps, {}> {
 
 	@:client var githubUsername:String;
 	@:client var githubRepo:String;

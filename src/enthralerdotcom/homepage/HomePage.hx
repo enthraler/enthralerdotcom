@@ -10,7 +10,7 @@ enum HomeAction {
 	None;
 }
 
-class HomePage extends UniversalPage<HomeAction, {}, {}, {}, {}> {
+class HomePage extends UniversalPage<HomeAction, {}, {}> {
 
 	public function new(api:HomeBackendApi) {
 		super(api);

@@ -12,7 +12,7 @@ typedef CodeMirrorEditorProps = {
 	?onChange:String->Void
 }
 
-class CodeMirrorEditor extends UniversalComponent<CodeMirrorEditorProps, {}, {}> {
+class CodeMirrorEditor extends UniversalComponent<CodeMirrorEditorProps, {}> {
 	@:client var textarea:TextAreaElement;
 	@:client var editor:CodeMirror;
 
