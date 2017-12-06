@@ -1,0 +1,3 @@
+# @install: lix --silent download "haxelib:objectinit#1.3.0" into objectinit/1.3.0/haxelib
+-D objectinit=1.3.0
+-cp ${HAXESHIM_LIBCACHE}/objectinit/1.3.0/haxelib/src

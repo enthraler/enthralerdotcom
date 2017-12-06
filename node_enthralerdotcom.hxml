@@ -1,6 +1,6 @@
 -D server
--cp node_modules/haxe-loader/macro
--lib monsoon
+-lib tink_web
+-lib tink_http_middleware
 -lib react
 -lib tink_core
 -lib tink_macro
@@ -15,6 +15,5 @@
 -lib hxnodejs
 -lib enthraler
 -cp src
--cp node_modules/haxe-loader/haxelib
 -main enthralerdotcom.Server
 -js bin/server.js

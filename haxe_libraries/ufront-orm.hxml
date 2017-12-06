@@ -1,0 +1,8 @@
+# @install: lix --silent download "https://github.com/ufront/ufront-orm/archive/7daff60790322f650b7d910e70880e59bd11902f.tar.gz" into ufront-orm/1.1.0/github/7daff60790322f650b7d910e70880e59bd11902f
+-D ufront-orm=1.1.0
+-cp ${HAXESHIM_LIBCACHE}/ufront-orm/1.1.0/github/7daff60790322f650b7d910e70880e59bd11902f/src
+#-cp /Users/jason.oneil/workspace/ufront/orm/src
+
+-lib tink_core
+-lib tink_macro
+-lib record-macros
