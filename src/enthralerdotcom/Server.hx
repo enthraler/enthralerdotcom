@@ -33,6 +33,7 @@ class Server {
 				if (err != null) {
 					throw err;
 				}
+				trace('Connected to ${cnxSettings.host}');
 				webMain(cnx);
 			});
 		#else
@@ -66,7 +67,7 @@ class Server {
                 .recover(OutgoingResponse.reportError);
         };
         container
-            .run(handler.applyMiddleware(new Static('js', '/js/')))
+            .run(handler.applyMiddleware(new Static('assets', '/assets/')))
             .handle(function (status) {
                 switch status {
                     case Running(arg1):
