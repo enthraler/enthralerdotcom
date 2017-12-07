@@ -1,7 +1,8 @@
-FROM php:7.1-apache
-ADD ./apache-config.conf /etc/apache2/sites-available/000-default.conf
+# latest official node image
+FROM node:latest
 ADD . /var/www/html
-RUN docker-php-ext-install mysqli && \
-    docker-php-ext-install pdo_mysql
-RUN a2enmod rewrite
-RUN service apache2 restart
+RUN yarn global add supervisor
+RUN cd /var/www/html && yarn
+WORKDIR /var/www/html
+EXPOSE 3000
+CMD ["supervisor", "-w", "server.js", "--", "server.js"];
