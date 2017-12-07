@@ -12,6 +12,9 @@ import enthralerdotcom.content.ContentEditorPage;
 class Client {
 	public static function main() {
 		Webpack.require('./EnthralerStyles.scss');
+		// Note: I'm having trouble getting this to import from HomePage.hx
+		// So I'm importing it here temporarily.
+		Webpack.require('./homepage/Mailchimp.css');
 		onReady(function () {
 			var propsElem = document.getElementById('small-universe-props');
 			switch propsElem.getAttribute('data-page') {
