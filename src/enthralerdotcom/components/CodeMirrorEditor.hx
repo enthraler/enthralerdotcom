@@ -18,7 +18,7 @@ class CodeMirrorEditor extends UniversalComponent<CodeMirrorEditorProps, {}> {
 
 	override public function render() {
 		return jsx('<div>
-			<textarea ref=${(function (ta) this.textarea=ta)} defaultValue=${this.props.content}></textarea>
+			<textarea ref=${function (ta) {this.textarea=ta;}} defaultValue=${this.props.content}></textarea>
 		</div>');
 	}
 
@@ -28,7 +28,7 @@ class CodeMirrorEditor extends UniversalComponent<CodeMirrorEditorProps, {}> {
 
 	@:client
 	function setupCodeMirror() {
-		// CodeMirror externs don't haxe a `@:jsRequire()` metadata, so we need to assign this directly for the externs to work.
+		// CodeMirror externs don't have a `@:jsRequire()` metadata, so we need to assign this directly for the externs to work.
 		js.Lib.global.CodeMirror = Webpack.require('codemirror');
 		Webpack.require('codemirror/mode/javascript/javascript.js');
 		Webpack.require('./CodeMirrorEditor.scss');
