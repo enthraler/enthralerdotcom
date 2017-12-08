@@ -47,7 +47,7 @@ class HomePage extends UniversalPage<HomeAction, {}, {}> {
 			<section className="section">
 				<div className="container">
 					<h3 className="title">Enthraler</h3>
-					<h4 className="subtitle"><em>n. A digital infographic you can use to share your best stories and your biggest ideas with your audience.</em></h4>
+					<h4 className="subtitle"><em>n. An online visualisation that you can use to share your best stories and your biggest ideas with your audience.</em></h4>
 				</div>
 			</section>
 		</div>');
