@@ -80,7 +80,6 @@ class Server {
             });
 
 		// var app = new Monsoon();
-		// app.use('/assets/', Static.serve('assets'));
 		// app.use('$jsLibBase/enthraler.js',  function (req,res) res.send(CompileTime.readFile('bin/enthraler.js')));
 		// app.use('$jsLibBase/enthralerHost.js', function (req,res) res.send(CompileTime.readFile('bin/enthralerHost.js')));
 		// app.use('$jsLibBase/frame.html', function (req,res) res.send(CompileTime.readFile('bin/frame.html')));
@@ -104,43 +103,11 @@ class Root {
 		this.injector = injector;
 	}
 
-	@:all('/templates/github/$username/$repo')
-	public function viewTemplate(username: String, repo: String, context: Context) {
-		return new SmallUniverse(function () {
-			return injector.instantiateWith(enthralerdotcom.templates.ViewTemplatePage, [
-				username,
-				repo,
-			]);
-		}, context);
-	}
+	@:sub('/templates')
+	public function templates() return new enthralerdotcom.templates.Routes(injector);
 
-
-	@:all('/templates/')
-	public function manageTemplates(context: Context) {
-		return new SmallUniverse(function () {
-			return injector.instantiate(enthralerdotcom.templates.ManageTemplatesPage);
-		}, context);
-	}
-
-
-	@:all('/i/$guid/edit')
-	public function editContent(guid: String, context: Context) {
-		return new SmallUniverse(function () {
-			return injector.instantiateWith(enthralerdotcom.content.ContentEditorPage, [
-				guid
-			]);
-		}, context);
-	}
-
-
-	@:all('/i/$guid')
-	public function viewContent(guid: String, context: Context) {
-		return new SmallUniverse(function () {
-			return injector.instantiateWith(enthralerdotcom.content.ContentViewerPage, [
-				guid
-			]);
-		}, context);
-	}
+	@:sub('/i')
+	public function content() return new enthralerdotcom.content.Routes(injector);
 
 	@:all('/')
 	public function homepage(context: Context) {
