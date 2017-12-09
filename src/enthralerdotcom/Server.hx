@@ -15,9 +15,6 @@ import tink.http.Response.OutgoingResponse;
 using tink.core.Outcome;
 
 class Server {
-
-	public static var jsLibBase = '/jslib/0.1.1';
-
 	static function main() {
 		var cnxSettings = {
 			host: Sys.getEnv('DB_HOST'),
@@ -78,10 +75,6 @@ class Server {
                         trace('Shutdown successful');
                 };
             });
-
-		// app.use('$jsLibBase/enthraler.js',  function (req,res) res.send(CompileTime.readFile('bin/enthraler.js')));
-		// app.use('$jsLibBase/enthralerHost.js', function (req,res) res.send(CompileTime.readFile('bin/enthralerHost.js')));
-		// app.use('$jsLibBase/frame.html', function (req,res) res.send(CompileTime.readFile('bin/frame.html')));
 	}
 
 	static function cliMain(cnx) {
@@ -99,6 +92,9 @@ class Root {
     public function new(injector) {
 		this.injector = injector;
 	}
+
+	@:sub('/jslib/v1/')
+	public function jsLib() return new enthralerdotcom.jslib.Routes();
 
 	@:sub('/templates')
 	public function templates() return new enthralerdotcom.templates.Routes(injector);
