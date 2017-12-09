@@ -19,6 +19,18 @@ class Routes {
 		}, context);
 	}
 
+	@:get('/$guid/data/')
+	@:get('/$guid/data/$id')
+	public function getData(guid: String, ?id: Int) {
+		return ContentServerRoutes.getDataJson(guid, id);
+	}
+
+	@:get('/$guid/embed/')
+	@:get('/$guid/embed/$id')
+	public function getEmbedFrame(guid: String, ?id: Int) {
+		return ContentServerRoutes.redirectToEmbedFrame(guid, id);
+	}
+
 
 	@:all('/$guid')
 	public function viewContent(guid: String, context: SmallUniverseContext) {

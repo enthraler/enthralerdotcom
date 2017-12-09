@@ -1,12 +1,33 @@
 package enthralerdotcom.content;
 
-import monsoon.Request;
-import monsoon.Response;
+import tink.http.Response;
+import tink.http.Header;
+using tink.CoreApi;
 
 /**
 A collection of functions used for handling server routes that are not React pages - eg embed frames or JSON data.
 **/
 class ContentServerRoutes {
+	public static function getDataJson(guid: String, ?id: Int): Promise<OutgoingResponse> {
+		var version = getVersion(guid, id);
+		if (version == null) {
+			return new Error(404, 'Content version not found');
+		}
+		return new OutgoingResponse(
+			header(200, 'application/json'),
+			version.jsonContent
+		);
+	}
+
+	public static function redirectToEmbedFrame(guid: String, ?id: Int): Promise<OutgoingResponse> {
+		var baseUrl = '/jslib/0.1.1';
+		var version = getVersion(guid, id);
+		var contentUrl = '/i/${guid}/data/${version.id}';
+		var templateUrl = version.templateVersion.mainUrl;
+		var url = '$baseUrl/frame.html#?template=${templateUrl}&authorData=${contentUrl}';
+		return doHttpRedirect(url);
+	}
+
 	static function getVersion(guid:String, id:Null<Int>):ContentVersion {
 		if (id != null) {
 			return ContentVersion.manager.get(id);
@@ -18,23 +39,16 @@ class ContentServerRoutes {
 		});
 	}
 
-	public static function getDataJson(req:Request<{guid:String, ?id:Int}>, res:Response) {
-		var version = getVersion(req.params.guid, req.params.id);
-		if (version == null) {
-			res.status(404);
-			res.send('Content version not found');
-			return;
-		}
-		res.set('content-type', 'application/json');
-		res.send(version.jsonContent);
+	static inline function header(status: Int, contentType: String) {
+		return new ResponseHeader(status, status, [new HeaderField('Content-Type', contentType)]);
 	}
 
-	public static function redirectToEmbedFrame(req:Request<{guid:String, ?id:Int}>, res:Response) {
-		var baseUrl = '/jslib/0.1.1';
-		var version = getVersion(req.params.guid, req.params.id);
-		var contentUrl = '/i/${req.params.guid}/data/${version.id}';
-		var templateUrl = version.templateVersion.mainUrl;
-		var url = '$baseUrl/frame.html#?template=${templateUrl}&authorData=${contentUrl}';
-		res.redirect(302, url);
+	static function doHttpRedirect(url: String): OutgoingResponse {
+		return new OutgoingResponse(
+			new ResponseHeader(TemporaryRedirect, 307, [
+				new HeaderField('Location', url)
+			]),
+			""
+		);
 	}
 }
