@@ -58,23 +58,23 @@ class Server {
 		SmallUniverse.captureTraces();
 
 		var container = new NodeContainer(3000);
-        var router = new Router<Root>(new Root(getInjector(cnx)));
+		var router = new Router<Root>(new Root(getInjector(cnx)));
 		var handler:Handler = function(req) {
-            return router.route(Context.ofRequest(req))
-                .recover(OutgoingResponse.reportError);
-        };
-        container
-            .run(handler.applyMiddleware(new Static('assets', '/assets/')))
-            .handle(function (status) {
-                switch status {
-                    case Running(arg1):
-                        trace('Running: Listening on port 8080');
-                    case Failed(err):
-                        trace('Error starting server: $err');
-                    case Shutdown:
-                        trace('Shutdown successful');
-                };
-            });
+			return router.route(Context.ofRequest(req))
+				.recover(OutgoingResponse.reportError);
+		};
+		container
+			.run(handler.applyMiddleware(new Static('assets', '/assets/')))
+			.handle(function (status) {
+				switch status {
+					case Running(arg1):
+						trace('Running: Listening on port 8080');
+					case Failed(err):
+						trace('Error starting server: $err');
+					case Shutdown:
+						trace('Shutdown successful');
+				};
+			});
 	}
 
 	static function cliMain(cnx) {
@@ -89,7 +89,7 @@ class Server {
 class Root {
 	var injector:Injector<"enthralerdotcom">;
 
-    public function new(injector) {
+	public function new(injector) {
 		this.injector = injector;
 	}
 
