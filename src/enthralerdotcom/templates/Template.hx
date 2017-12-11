@@ -1,19 +1,13 @@
 package enthralerdotcom.templates;
 
-import enthralerdotcom.templates.TemplateVersion;
-import enthralerdotcom.contentanalytics.ContentAnalyticsEvent;
 import enthralerdotcom.types.*;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-@:index(name)
-class Template extends Object {
-	public var name:SString<255>;
-	public var description:SText;
-	public var source:SData<TemplateSource>;
-	public var homepage:Url;
-	public var versions:HasMany<TemplateVersion>;
-	public var analytics:HasMany<ContentAnalyticsEvent>;
+typedef Template = {
+	id: Id<Template>,
+	created: DateTime,
+	updated: DateTime,
+	sourceJson: Text<"">
 }
 
 enum TemplateSource {

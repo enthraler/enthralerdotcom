@@ -1,18 +1,17 @@
 package enthralerdotcom.content;
 
-import enthralerdotcom.templates.Template;
 import enthralerdotcom.templates.TemplateVersion;
-import enthralerdotcom.contentanalytics.ContentAnalyticsEvent;
 import enthralerdotcom.types.*;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-@:index(contentID, published)
-class ContentVersion extends Object {
-	public var content:BelongsTo<Content>;
-	public var templateVersion:BelongsTo<TemplateVersion>;
-	public var jsonContent:SText;
-	public var published:Null<SDate>;
-	public var analytics:HasMany<ContentAnalyticsEvent>;
-	public var resources:ManyToMany<ContentVersion,ContentResource>;
+// @:index(contentID, published)
+typedef ContentVersion = {
+	id: Id<ContentVersion>,
+	created: DateTime,
+	updated: DateTime,
+	content: Id<Content>,
+	templateVersion: Id<TemplateVersion>,
+	title: Text<255>,
+	jsonContent: Text<"">,
+	published: Null<Date>,
 }

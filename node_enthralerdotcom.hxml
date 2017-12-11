@@ -5,9 +5,9 @@
 -lib tink_core
 -lib tink_macro
 -lib smalluniverse
--lib ufront-orm
 -lib compiletime
 -lib tink_json
+-lib tink_sql
 -lib dodrugs
 -lib markdown
 -lib objectinit

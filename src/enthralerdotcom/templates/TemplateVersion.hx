@@ -1,28 +1,29 @@
 package enthralerdotcom.templates;
 
 import enthralerdotcom.templates.Template;
-import enthralerdotcom.contentanalytics.ContentAnalyticsEvent;
 import enthralerdotcom.types.*;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-@:index(templateID, major, minor, patch, unique)
-class TemplateVersion extends Object {
-	public var template:BelongsTo<Template>;
-	public var major:STinyInt;
-	public var minor:STinyInt;
-	public var patch:STinyInt;
+// @:index(templateID, major, minor, patch, unique)
+typedef TemplateVersion = {
+	id: Id<TemplateVersion>,
+	created: DateTime,
+	updated: DateTime,
+	templateId: Id<Template>,
+	major: Integer<8>,
+	minor: Integer<8>,
+	patch: Integer<8>,
+	baseUrl: Url,
+	mainUrl: Url,
+	schemaUrl: Url,
+	name: Text<255>,
+	description: Text<"">,
+	readme: Null<Text<"">>,
+	homepage: Url
+}
 
-	@:validate(StringTools.endsWith(_, "/"))
-	public var basePath:Url; // Rawgit URL.
-
-	public var mainUrl:Url;
-	public var schemaUrl:Url;
-	public var readme:Null<SText>;
-
-	public var analytics:HasMany<ContentAnalyticsEvent>;
-
-	public function getSemver():SemVer {
-		return new SemVer('$major.$minor.$patch');
+class TemplateVersionUtil {
+	public static function getSemver(v: TemplateVersion) {
+		return new SemVer('${v.major}.${v.minor}.${v.patch}');
 	}
 }

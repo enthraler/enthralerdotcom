@@ -1,5 +1,5 @@
-# @install: lix --silent download "https://github.com/jasononeil/dodrugs/archive/cfff2d40675d877410972bffd9d326d401d5fb62.tar.gz" into dodrugs/1.0.0-beta.1/github/cfff2d40675d877410972bffd9d326d401d5fb62
+# @install: lix --silent download "https://github.com/jasononeil/dodrugs/archive/5be5a39d03bf4dc56aae5cb21fe14f75e4883341.tar.gz" into dodrugs/1.0.0-beta.1/github/5be5a39d03bf4dc56aae5cb21fe14f75e4883341
 -D dodrugs=1.0.0-beta.1
--cp ${HAXESHIM_LIBCACHE}/dodrugs/1.0.0-beta.1/github/cfff2d40675d877410972bffd9d326d401d5fb62/src
+-cp ${HAXESHIM_LIBCACHE}/dodrugs/1.0.0-beta.1/github/5be5a39d03bf4dc56aae5cb21fe14f75e4883341/src
 
 -lib tink_macro

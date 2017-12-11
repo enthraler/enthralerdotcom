@@ -4,6 +4,7 @@
 -lib tink_macro
 -lib smalluniverse
 -lib tink_json
+-lib tink_sql
 -lib objectinit
 -lib codemirror
 -lib haxe-loader

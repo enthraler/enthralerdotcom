@@ -1,26 +1,19 @@
 package enthralerdotcom.content;
 
 import enthralerdotcom.templates.Template;
-import enthralerdotcom.contentanalytics.ContentAnalyticsEvent;
 import enthralerdotcom.types.*;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-@:index(guid, unique)
-@:index(title)
-@:index(templateID)
-@:index(copiedFromID)
-class Content extends Object {
-	public var title:SString<255>;
-	public var template:BelongsTo<Template>;
-	public var guid:ContentGuid;
-	public var anonymousAuthor:HasOne<AnonymousContentAuthor>;
-	public var copiedFrom:Null<BelongsTo<Content>>;
-	public var versions:HasMany<ContentVersion>;
-	public var analytics:HasMany<ContentAnalyticsEvent>;
-
-	public function new() {
-		super();
-		this.guid = ContentGuid.generate();
-	}
+// @:index(guid, unique)
+// @:index(title)
+// @:index(templateId)
+// @:index(copiedFromId)
+typedef Content = {
+	id: Id<Content>,
+	created: DateTime,
+	updated: DateTime,
+	templateId: Id<Template>,
+	guid: ContentGuid,
+	anonymousAuthor: Id<AnonymousContentAuthor>,
+	copiedFromId: Id<Content>,
 }

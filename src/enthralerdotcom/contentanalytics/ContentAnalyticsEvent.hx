@@ -4,15 +4,14 @@ import enthralerdotcom.content.Content;
 import enthralerdotcom.content.ContentVersion;
 import enthralerdotcom.templates.Template;
 import enthralerdotcom.templates.TemplateVersion;
-import enthralerdotcom.contentanalytics.ContentAnalyticsEventType;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-class ContentAnalyticsEvent extends Object {
-	public var content:BelongsTo<Content>;
-	public var contentVersion:BelongsTo<ContentVersion>;
-	public var template:BelongsTo<Template>;
-	public var templateVersion:BelongsTo<TemplateVersion>;
-	public var eventJson:String;
-	@:skip public var event:ContentAnalyticsEventType;
+typedef ContentAnalyticsEvent = {
+	id: Id<Content>,
+	created: DateTime,
+	contentId: Id<Content>,
+	contentVersionId: Id<ContentVersion>,
+	templateId: Id<Template>,
+	templateVersionId: Id<TemplateVersion>,
+	eventJson: String,
 }

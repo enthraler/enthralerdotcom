@@ -1,9 +1,9 @@
 package enthralerdotcom.types;
 
-import sys.db.Types;
+import tink.sql.types.Text;
 import enthralerdotcom.util.Uuid;
 
-abstract ContentGuid(SString<36>) to String {
+abstract ContentGuid(Text<36>) to String {
 	public function new(guid:String) {
 		this = guid;
 	}

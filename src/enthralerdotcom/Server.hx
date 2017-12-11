@@ -5,9 +5,8 @@ import dodrugs.Injector;
 import sys.db.*;
 import sys.FileSystem;
 import sys.io.File;
-// import ufront.db.migrations.*;
+import ufront.db.migrations.*;
 import tink.http.containers.*;
-import tink.http.Response;
 import tink.http.Handler;
 import tink.web.routing.*;
 import tink.http.middleware.Static;
@@ -26,13 +25,16 @@ class Server {
 			cnxSettings = tink.Json.parse(File.getContent('conf/db.json'));
 		}
 		#if nodejs
-			MysqlJs.connect(cnxSettings, function (err, cnx) {
-				if (err != null) {
-					throw err;
-				}
-				trace('Connected to ${cnxSettings.host}');
-				webMain(cnx);
+			var driver = new tink.sql.drivers.MySql({
+				user: cnxSettings.user,
+				password: cnxSettings.pass
 			});
+			var db = new Db('enthraler', driver);
+			if (Sys.args()[0] == '--migrate') {
+				cliMain(db);
+			} else {
+				webMain(db);
+			}
 		#else
 			Manager.cnx = Mysql.connect(cnxSettings);
 			if (php.Web.isModNeko) {
@@ -44,10 +46,9 @@ class Server {
 
 	}
 
-	static function getInjector(cnx) {
+	static function getInjector(db: Db) {
 		return Injector.create('enthralerdotcom', [
-			var _:AsyncConnection = cnx,
-			var _:Connection = Manager.cnx,
+			db,
 			// MigrationConnection,
 			// MigrationManager,
 			// MigrationApi,
@@ -77,12 +78,12 @@ class Server {
 			});
 	}
 
-	static function cliMain(cnx) {
-		var injector = getInjector(cnx);
+	static function cliMain(db) {
+		var injector = getInjector(db);
 		// var migrationApi = injector.get(MigrationApi);
 		// migrationApi.ensureMigrationsTableExists();
 		// migrationApi.syncMigrationsUp().sure();
-		trace('done');
+		trace('Migrations complete');
 	}
 }
 

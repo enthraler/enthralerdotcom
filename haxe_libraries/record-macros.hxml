@@ -1,3 +1,0 @@
-# @install: lix --silent download "https://github.com/jasononeil/record-macros/archive/4b16a10e5db63a55c32c55d5797a2e3a6d718ae4.tar.gz" into record-macros/1.0.0-alpha/github/4b16a10e5db63a55c32c55d5797a2e3a6d718ae4
--D record-macros=1.0.0-alpha
--cp ${HAXESHIM_LIBCACHE}/record-macros/1.0.0-alpha/github/4b16a10e5db63a55c32c55d5797a2e3a6d718ae4/src

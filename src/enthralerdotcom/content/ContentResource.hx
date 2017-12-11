@@ -2,19 +2,25 @@ package enthralerdotcom.content;
 
 import enthralerdotcom.content.ContentVersion;
 import enthralerdotcom.types.*;
-import ufront.ORM;
-import sys.db.Types;
+import tink.sql.types.*;
 
-class ContentResource extends Object {
-	/** The original version this resource was included in. **/
-	public var contentVersion:BelongsTo<ContentVersion>;
+typedef ContentResource = {
+	id: Id<ContentResource>,
+	created: DateTime,
+	updated: DateTime,
+	contentVersionId: Id<ContentVersion>,
+}
 
-	/** This resource may be re-used in future versions, so track those with a join table. **/
-	public var contentVersions:ManyToMany<ContentResource,ContentVersion>;
+typedef ContentResourceJoinContentVersion = {
+	contentResourceId: Id<ContentResource>,
+	contentVersionId: Id<ContentVersion>,
+	created: DateTime,
+	updated: DateTime,
+}
 
-	public var filePath:FilePath;
-
-	function getUrl(s3BasePath:Url):Url {
-		return new Url('${s3BasePath}${contentVersion.content.guid}/${contentVersion.id}/${filePath}');
+class ContentResourceUtil {
+	function getUrl(contentResource: ContentResource, s3BasePath:Url): Promise<Url> {
+		var contentVersion = null;
+		return new Url('${s3BasePath}${contentVersion.content.guid}/${contentVersion.id}/${contentResource.filePath}');
 	}
 }
