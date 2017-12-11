@@ -2,6 +2,8 @@ package enthralerdotcom.content;
 
 import smalluniverse.*;
 import dodrugs.Injector;
+import enthralerdotcom.content.ContentEditorPage;
+import enthralerdotcom.content.ContentViewerPage;
 
 class Routes {
 	var injector: Injector<"enthralerdotcom">;
@@ -13,7 +15,7 @@ class Routes {
 	@:all('/$guid/edit')
 	public function editContent(guid: String, context: SmallUniverseContext) {
 		return new SmallUniverse(function () {
-			return injector.instantiateWith(enthralerdotcom.content.ContentEditorPage, [
+			return injector.instantiateWith(ContentEditorPage, [
 				guid
 			]);
 		}, context);
@@ -35,7 +37,7 @@ class Routes {
 	@:all('/$guid')
 	public function viewContent(guid: String, context: SmallUniverseContext) {
 		return new SmallUniverse(function () {
-			return injector.instantiateWith(enthralerdotcom.content.ContentViewerPage, [
+			return injector.instantiateWith(ContentViewerPage, [
 				guid
 			]);
 		}, context);
