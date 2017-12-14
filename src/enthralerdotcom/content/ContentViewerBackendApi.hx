@@ -2,37 +2,52 @@ package enthralerdotcom.content;
 
 import smalluniverse.*;
 import enthralerdotcom.content.ContentViewerPage;
-using tink.CoreApi;
 import enthralerdotcom.content.Content;
+import enthralerdotcom.templates.*;
+import enthralerdotcom.Db;
+import tink.sql.OrderBy;
+using tink.CoreApi;
 
 class ContentViewerBackendApi implements BackendApi<ContentViewerAction, ContentViewerProps> {
+	var db: Db;
 	var guid: String;
 
-	public function new(guid: String) {
+	public function new(db: Db, guid: String) {
+		this.db = db;
 		this.guid = guid;
 	}
 
 	public function get(context: SmallUniverseContext): Promise<ContentViewerProps> {
-		var content = Content.manager.select($guid == this.guid);
-		var latestVersion = ContentVersion.manager.select($contentID == content.id && $published != null, {orderBy: -published});
-		if (latestVersion == null) {
-			throw new Error(404, 'Content not found');
-		}
-		var templateVersion = latestVersion.templateVersion;
-		var template = templateVersion.template;
-		var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
-		var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
-		var props:ContentViewerProps = {
-			contentVersionId: latestVersion.id,
-			templateName: template.name,
-			templateUrl: templateVersion.mainUrl,
-			contentUrl: '/i/${content.guid}/data/${latestVersion.id}',
-			title: content.title,
-			published: latestVersion.published,
-			guid: content.guid,
-			embedCode: embedCode
-		};
-		return props;
+		return db.Content
+			.join(db.ContentVersion)
+			.on(ContentVersion.contentId == Content.id)
+			.join(db.TemplateVersion)
+			.on(TemplateVersion.id == ContentVersion.templateVersionId)
+			.where(Content.guid == this.guid && ContentVersion.published != null)
+			.first(function (_): OrderBy<Dynamic> {
+				return [{
+					field: db.ContentVersion.fields.published,
+					order: Desc
+				}];
+			})
+			.next(function (result): Promise<ContentViewerProps> {
+				if (result == null) {
+					return new Error(404, 'Content not found');
+				}
+				var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
+				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
+				var props:ContentViewerProps = {
+					contentVersionId: result.ContentVersion.id,
+					templateName: result.TemplateVersion.name,
+					templateUrl: result.TemplateVersion.mainUrl,
+					contentUrl: '/i/${result.Content.guid}/data/${result.ContentVersion.id}',
+					title: result.ContentVersion.title,
+					published: result.ContentVersion.published,
+					guid: result.Content.guid,
+					embedCode: embedCode
+				};
+				return props;
+			});
 	}
 
 	public function processAction(context: SmallUniverseContext, action: ContentViewerAction): Promise<BackendApiResult> {

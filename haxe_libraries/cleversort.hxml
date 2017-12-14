@@ -1,0 +1,5 @@
+# @install: lix --silent download "haxelib:cleversort#1.0.3" into cleversort/1.0.3/haxelib
+-D cleversort=1.0.3
+-cp ${HAXESHIM_LIBCACHE}/cleversort/1.0.3/haxelib/src
+
+-lib tink_macro

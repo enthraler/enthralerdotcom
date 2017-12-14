@@ -7,51 +7,63 @@ using tink.CoreApi;
 import enthralerdotcom.types.*;
 import enthralerdotcom.content.Content;
 import enthralerdotcom.templates.TemplateVersion;
-using ObjectInit;
+import enthralerdotcom.Db;
+import tink.sql.OrderBy;
 #end
 
 class ContentEditorBackendApi implements BackendApi<ContentEditorAction, ContentEditorProps> {
 	var guid: String;
+	var db: Db;
 
-	public function new(guid: String) {
+	public function new(db: Db, guid: String) {
+		this.db = db;
 		this.guid = guid;
 	}
 
 	public function get(context: SmallUniverseContext):Promise<ContentEditorProps> {
-		var content = Content.manager.select($guid == this.guid);
-		var template = content.template;
-		var latestVersion = content.versions.last();
-		if (latestVersion == null) {
-			// If it is new content, with no version saved yet, create a new version.
-			latestVersion = new ContentVersion().objectInit({
-				content: content,
-				jsonContent: "{}",
-				templateVersion: TemplateVersion.manager.select($templateID == template.id, {
-					orderBy: [-major, -minor, -patch]
-				})
+		return db.Content
+			.join(db.ContentVersion)
+			.on(ContentVersion.contentId == Content.id)
+			.join(db.TemplateVersion)
+			.on(TemplateVersion.id == ContentVersion.templateVersionId)
+			.where(Content.guid == this.guid && ContentVersion.published != null)
+			.first(function (_): OrderBy<Dynamic> {
+				return [{
+					field: db.ContentVersion.fields.published,
+					order: Desc
+				}];
+			})
+			.next(function (result): Promise<ContentEditorProps> {
+				if (result == null) {
+					// TODO: If it is new content, with no version saved yet, create a new version.
+					return new Error(404, 'Content Version not found');
+				}
+				var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
+				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
+				var c = result.Content,
+					cv = result.ContentVersion,
+					tv = result.TemplateVersion;
+				var props:ContentEditorProps = {
+					template:{
+						name: tv.name,
+						version: TemplateVersionUtil.getSemver(tv),
+						versionId: tv.id,
+						mainUrl: tv.mainUrl,
+						schemaUrl: tv.schemaUrl
+					},
+					content:{
+						id: c.id,
+						title: cv.title,
+						guid: c.guid,
+					},
+					currentVersion:{
+						versionId: cv.id,
+						jsonContent: cv.jsonContent,
+						published: cv.published
+					}
+				};
+				return props;
 			});
-		}
-		var templateVersion = latestVersion.templateVersion;
-		var props:ContentEditorProps = {
-			template:{
-				name: template.name,
-				version: templateVersion.getSemver(),
-				versionId: templateVersion.id,
-				mainUrl: templateVersion.mainUrl,
-				schemaUrl: templateVersion.schemaUrl
-			},
-			content:{
-				id: content.id,
-				title: content.title,
-				guid: content.guid,
-			},
-			currentVersion:{
-				versionId: latestVersion.id,
-				jsonContent: latestVersion.jsonContent,
-				published: latestVersion.published
-			}
-		};
-		return props;
 	}
 
 	public function processAction(context:SmallUniverseContext, action:ContentEditorAction):Promise<BackendApiResult> {

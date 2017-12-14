@@ -14,6 +14,7 @@
 -lib haxe-loader
 -lib hxnodejs
 -lib enthraler
+-lib cleversort
 -cp src
 -main enthralerdotcom.Server
 -js bin/server.js

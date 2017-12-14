@@ -2,49 +2,63 @@ package enthralerdotcom.templates;
 
 import smalluniverse.*;
 import enthralerdotcom.templates.ViewTemplatePage;
+import enthralerdotcom.Db;
 using tink.CoreApi;
 #if server
 import enthralerdotcom.content.Content;
+import enthralerdotcom.templates.Template;
+import enthralerdotcom.templates.TemplateVersion;
+import tink.Json;
 using ObjectInit;
 #end
 
 class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTemplateProps> {
+	var db: Db;
 	var username: String;
 	var repo: String;
 
-	public function new(username: String, repo: String) {
+	public function new(db: Db, username: String, repo: String) {
+		this.db = db;
 		this.username = username;
 		this.repo = repo;
 	}
 
-	function getTemplateName() {
-		return '$username/$repo';
-	}
-
-	function getTemplate() {
-		var name = getTemplateName();
-		return Template.manager.select($name == name);
-	}
-
 	public function get(context: SmallUniverseContext):Promise<ViewTemplateProps> {
-		var tpl = getTemplate();
-		var versions = TemplateVersion.manager.search($templateID==tpl.id, {
-			orderBy: [-major, -minor, -patch]
-		});
-		var latestVersion = versions.first();
-		var props:ViewTemplateProps = {
-			template: {
-				name: tpl.name,
-				description: tpl.description,
-				homepage: tpl.homepage,
-				readme: Markdown.markdownToHtml(latestVersion.readme),
-				versions: [for (v in versions) {
-					version: v.getSemver(),
-					mainUrl: v.mainUrl
-				}]
-			}
-		};
-		return props;
+		return getTemplate()
+			.next(function (tpl: Template) {
+				return getVersions(tpl.id).next(function (versions) {
+					return {
+						tpl: tpl,
+						versions: versions,
+						latestVersion: versions[0]
+					};
+				});
+			})
+			.next(function (data): ViewTemplateProps {
+				return {
+					template: {
+						name: data.latestVersion.name,
+						description: data.latestVersion.description,
+						homepage: data.latestVersion.homepage,
+						readme: Markdown.markdownToHtml(data.latestVersion.readme),
+						versions: [for (v in data.versions) {
+							version: TemplateVersionUtil.getSemver(v),
+							mainUrl: v.mainUrl
+						}]
+					}
+				};
+			});
+	}
+
+	function getTemplate(): Promise<Template> {
+		var sourceJson = Json.stringify(Github(username, repo));
+		return db.Template.where(Template.sourceJson == sourceJson).first();
+	}
+
+	function getVersions(templateId: Int): Promise<Array<TemplateVersion>> {
+		return db.TemplateVersion
+			.where(TemplateVersion.templateId == templateId)
+			.all(null, TemplateVersionUtil.orderBySemver(db));
 	}
 
 	public function processAction(context: SmallUniverseContext, action: ViewTemplateAction):Promise<BackendApiResult> {
