@@ -7,11 +7,11 @@ import enthralerdotcom.templates.TemplateVersion;
 import tink.sql.types.*;
 
 typedef ContentAnalyticsEvent = {
-	id: Id<Content>,
-	created: DateTime,
-	contentId: Id<Content>,
-	contentVersionId: Id<ContentVersion>,
-	templateId: Id<Template>,
-	templateVersionId: Id<TemplateVersion>,
-	eventJson: String,
+	var id(default, null): Id<Content>;
+	var created(default, null): DateTime;
+	var contentId(default, null): Id<Content>;
+	var contentVersionId(default, null): Id<ContentVersion>;
+	var templateId(default, null): Id<Template>;
+	var templateVersionId(default, null): Id<TemplateVersion>;
+	var eventJson(default, null): Text<9999999>;
 }

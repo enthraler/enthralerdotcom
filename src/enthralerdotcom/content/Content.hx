@@ -9,11 +9,11 @@ import tink.sql.types.*;
 // @:index(templateId)
 // @:index(copiedFromId)
 typedef Content = {
-	id: Id<Content>,
-	created: DateTime,
-	updated: DateTime,
-	templateId: Id<Template>,
-	guid: ContentGuid,
-	anonymousAuthor: Id<AnonymousContentAuthor>,
-	copiedFromId: Id<Content>,
+	var id(default, null): Id<Content>;
+	var created(default, null): DateTime;
+	var updated(default, null): DateTime;
+	var templateId(default, null): Id<Template>;
+	var guid(default, null): ContentGuid;
+	var anonymousAuthorId(default, null): Id<AnonymousContentAuthor>;
+	var copiedFromId(default, null): Id<Content>;
 }

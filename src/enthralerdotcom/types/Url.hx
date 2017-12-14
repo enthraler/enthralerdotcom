@@ -1,8 +1,8 @@
 package enthralerdotcom.types;
 
-import sys.db.Types;
+import tink.sql.types.Text;
 
-abstract Url(SString<255>) to String {
+abstract Url(Text<255>) to String {
 	public function new(url:String) {
 		this = url;
 	}

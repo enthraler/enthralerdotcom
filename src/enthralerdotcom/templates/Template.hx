@@ -4,10 +4,10 @@ import enthralerdotcom.types.*;
 import tink.sql.types.*;
 
 typedef Template = {
-	id: Id<Template>,
-	created: DateTime,
-	updated: DateTime,
-	sourceJson: Text<"">
+	var id(default, null): Id<Template>;
+	var created(default, null): DateTime;
+	var updated(default, null): DateTime;
+	var sourceJson(default, null): Text<9999999>;
 }
 
 enum TemplateSource {

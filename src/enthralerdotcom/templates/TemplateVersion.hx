@@ -6,20 +6,20 @@ import tink.sql.types.*;
 
 // @:index(templateID, major, minor, patch, unique)
 typedef TemplateVersion = {
-	id: Id<TemplateVersion>,
-	created: DateTime,
-	updated: DateTime,
-	templateId: Id<Template>,
-	major: Integer<8>,
-	minor: Integer<8>,
-	patch: Integer<8>,
-	baseUrl: Url,
-	mainUrl: Url,
-	schemaUrl: Url,
-	name: Text<255>,
-	description: Text<"">,
-	readme: Null<Text<"">>,
-	homepage: Url
+	var id(default, null): Id<TemplateVersion>;
+	var created(default, null): DateTime;
+	var updated(default, null): DateTime;
+	var templateId(default, null): Id<Template>;
+	var major(default, null): Integer<8>;
+	var minor(default, null): Integer<8>;
+	var patch(default, null): Integer<8>;
+	var baseUrl(default, null): Url;
+	var mainUrl(default, null): Url;
+	var schemaUrl(default, null): Url;
+	var name(default, null): Text<255>;
+	var description(default, null): Text<9999999>;
+	var readme(default, null): Null<Text<9999999>>;
+	var homepage(default, null): Url;
 }
 
 class TemplateVersionUtil {

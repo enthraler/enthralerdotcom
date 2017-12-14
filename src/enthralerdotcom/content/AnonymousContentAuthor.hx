@@ -11,10 +11,10 @@ We use a unique GUID, their IP address, and a timestamp to authenticate that the
 // @:index(contentID, guid)
 // @:index(guid)
 typedef AnonymousContentAuthor = {
-	id: Id<AnonymousContentAuthor>,
-	created: DateTime,
-	updated: DateTime,
-	contentId: Id<Content>,
-	guid: UserGuid,
-	ipAddress: IpAddress,
+	var id(default, null): Id<AnonymousContentAuthor>;
+	var created(default, null): DateTime;
+	var updated(default, null): DateTime;
+	var contentId(default, null): Id<Content>;
+	var guid(default, null): UserGuid;
+	var ipAddress(default, null): IpAddress;
 }

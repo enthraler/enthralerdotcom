@@ -1,8 +1,8 @@
 package enthralerdotcom.types;
 
-import sys.db.Types;
+import tink.sql.types.Text;
 
-abstract FilePath(SString<255>) to String {
+abstract FilePath(Text<255>) to String {
 	public function new(filePath:String) {
 		this = filePath;
 	}

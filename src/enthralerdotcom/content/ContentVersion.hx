@@ -6,12 +6,12 @@ import tink.sql.types.*;
 
 // @:index(contentID, published)
 typedef ContentVersion = {
-	id: Id<ContentVersion>,
-	created: DateTime,
-	updated: DateTime,
-	content: Id<Content>,
-	templateVersion: Id<TemplateVersion>,
-	title: Text<255>,
-	jsonContent: Text<"">,
-	published: Null<Date>,
+	var id(default, null): Id<ContentVersion>;
+	var created(default, null): DateTime;
+	var updated(default, null): DateTime;
+	var contentId(default, null): Id<Content>;
+	var templateVersionId(default, null): Id<TemplateVersion>;
+	var title(default, null): Text<255>;
+	var jsonContent(default, null): Text<9999999>;
+	var published(default, null): Null<DateTime>;
 }

@@ -4,7 +4,6 @@ import enthralerdotcom.content.AnonymousContentAuthor;
 import enthralerdotcom.content.Content;
 import enthralerdotcom.content.ContentVersion;
 import enthralerdotcom.content.ContentResource;
-import enthralerdotcom.content.ContentResourceJoinContentVersion;
 import enthralerdotcom.contentanalytics.ContentAnalyticsEvent;
 import enthralerdotcom.templates.Template;
 import enthralerdotcom.templates.TemplateVersion;
@@ -17,6 +16,6 @@ import enthralerdotcom.templates.TemplateVersion;
 	ContentResourceJoinContentVersion,
 	ContentAnalyticsEvent,
 	Template,
-	TemplateVersion,
+	TemplateVersion
 )
 class Db extends tink.sql.Database {}
