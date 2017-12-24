@@ -48,7 +48,7 @@ class Server {
 
 	static function getInjector(db: Db) {
 		return Injector.create('enthralerdotcom', [
-			db,
+			var _:Db = db,
 			// MigrationConnection,
 			// MigrationManager,
 			// MigrationApi,
