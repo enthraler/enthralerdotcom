@@ -2,33 +2,50 @@ package enthralerdotcom.templates;
 
 import tink.Json;
 import enthralerdotcom.templates.ManageTemplatesPage;
+import enthralerdotcom.templates.TemplateVersion;
 using tink.CoreApi;
 import enthralerdotcom.types.*;
+import enthralerdotcom.Db;
 import enthraler.EnthralerPackageInfo;
 import smalluniverse.*;
+using CleverSort;
 
 class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, ManageTemplatesPageProps> {
-	public function new() {
+	var db: Db;
 
+	public function new(db: Db) {
+		this.db = db;
 	}
 
 	public function get(context):Promise<ManageTemplatesPageProps> {
-		var allTemplates = Template.manager.all();
-		var templates = [];
-		for (tpl in allTemplates) {
-			templates.push({
-				id: tpl.id,
-				name: tpl.name,
-				homepage: tpl.homepage,
-				versions: [for (v in tpl.versions) {
-					mainUrl: v.mainUrl,
-					version: v.getSemver()
-				}]
+		return db.TemplateVersion
+			.join(db.Template)
+			.on(TemplateVersion.templateId == Template.id)
+			.all(null, TemplateVersionUtil.orderBySemver(db))
+			.next(function (versions): ManageTemplatesPageProps {
+				var allTemplates = new Map();
+				for (row in versions) {
+					var template = row.Template;
+					var version = row.TemplateVersion;
+					if (!allTemplates.exists(template.id)) {
+						allTemplates[template.id] = {
+							id: template.id,
+							name: version.name,
+							homepage: version.homepage,
+							versions: []
+						};
+						allTemplates[template.id].versions.push({
+							mainUrl: version.mainUrl,
+							version: TemplateVersionUtil.getSemver(version)
+						});
+					}
+				}
+				var templatesArray = [for (tpl in allTemplates) tpl];
+				templatesArray.cleverSort(_.name);
+				return {
+					templates: templatesArray
+				};
 			});
-		}
-		return {
-			templates: templates
-		};
 	}
 
 	public function processAction(context, action:ManageTemplatesAction):Promise<BackendApiResult> {
