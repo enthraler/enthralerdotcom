@@ -3,12 +3,16 @@ package enthralerdotcom.templates;
 import tink.Json;
 import enthralerdotcom.templates.ManageTemplatesPage;
 import enthralerdotcom.templates.TemplateVersion;
-using tink.CoreApi;
+import enthralerdotcom.templates.Template;
+import haxe.Http;
 import enthralerdotcom.types.*;
 import enthralerdotcom.Db;
 import enthraler.EnthralerPackageInfo;
 import smalluniverse.*;
+using tink.CoreApi;
+#if server
 using CleverSort;
+#end
 
 class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, ManageTemplatesPageProps> {
 	var db: Db;
@@ -30,8 +34,8 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 					if (!allTemplates.exists(template.id)) {
 						allTemplates[template.id] = {
 							id: template.id,
-							name: version.name,
-							homepage: version.homepage,
+							name: template.name,
+							homepage: template.homepage,
 							versions: []
 						};
 						allTemplates[template.id].versions.push({

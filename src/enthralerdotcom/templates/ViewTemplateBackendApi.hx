@@ -38,9 +38,9 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 			.next(function (data): ViewTemplateProps {
 				return {
 					template: {
-						name: data.latestVersion.name,
-						description: data.latestVersion.description,
-						homepage: data.latestVersion.homepage,
+						name: data.tpl.name,
+						description: data.tpl.description,
+						homepage: data.tpl.homepage,
 						readme: Markdown.markdownToHtml(data.latestVersion.readme),
 						versions: [for (v in data.versions) {
 							version: TemplateVersionUtil.getSemver(v),

@@ -17,10 +17,7 @@ typedef TemplateVersion = {
 	var baseUrl(default, null): Url;
 	var mainUrl(default, null): Url;
 	var schemaUrl(default, null): Url;
-	var name(default, null): Text<255>;
-	var description(default, null): Text<9999999>;
 	var readme(default, null): Null<Text<9999999>>;
-	var homepage(default, null): Url;
 }
 
 class TemplateVersionUtil {

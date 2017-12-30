@@ -23,6 +23,8 @@ class ContentViewerBackendApi implements BackendApi<ContentViewerAction, Content
 			.on(ContentVersion.contentId == Content.id)
 			.join(db.TemplateVersion)
 			.on(TemplateVersion.id == ContentVersion.templateVersionId)
+			.join(db.Template)
+			.on(Template.id == TemplateVersion.templateId)
 			.where(Content.guid == this.guid && ContentVersion.published != null)
 			.first(function (_): OrderBy<Dynamic> {
 				return [{
@@ -38,7 +40,7 @@ class ContentViewerBackendApi implements BackendApi<ContentViewerAction, Content
 				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
 				var props:ContentViewerProps = {
 					contentVersionId: result.ContentVersion.id,
-					templateName: result.TemplateVersion.name,
+					templateName: result.Template.name,
 					templateUrl: result.TemplateVersion.mainUrl,
 					contentUrl: '/i/${result.Content.guid}/data/${result.ContentVersion.id}',
 					title: result.ContentVersion.title,

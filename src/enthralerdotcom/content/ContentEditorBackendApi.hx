@@ -26,6 +26,8 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 			.on(ContentVersion.contentId == Content.id)
 			.join(db.TemplateVersion)
 			.on(TemplateVersion.id == ContentVersion.templateVersionId)
+			.join(db.Template)
+			.on(TemplateVersion.templateId == Template.id)
 			.where(Content.guid == this.guid && ContentVersion.published != null)
 			.first(function (_): OrderBy<Dynamic> {
 				return [{
@@ -42,10 +44,11 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
 				var c = result.Content,
 					cv = result.ContentVersion,
-					tv = result.TemplateVersion;
+					tv = result.TemplateVersion,
+					tpl = result.Template;
 				var props:ContentEditorProps = {
 					template:{
-						name: tv.name,
+						name: tpl.name,
 						version: TemplateVersionUtil.getSemver(tv),
 						versionId: tv.id,
 						mainUrl: tv.mainUrl,
