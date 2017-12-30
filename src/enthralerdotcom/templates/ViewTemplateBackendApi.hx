@@ -8,6 +8,7 @@ using tink.CoreApi;
 import enthralerdotcom.content.Content;
 import enthralerdotcom.templates.Template;
 import enthralerdotcom.templates.TemplateVersion;
+import enthralerdotcom.types.ContentGuid;
 import tink.Json;
 using ObjectInit;
 #end
@@ -64,17 +65,24 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 	public function processAction(context: SmallUniverseContext, action: ViewTemplateAction):Promise<BackendApiResult> {
 		switch action {
 			case CreateNewContent:
-				var tpl = getTemplate();
-				var version = TemplateVersion.manager.select($templateID==tpl.id, {
-					orderBy: [-major, -minor, -patch]
-				});
-				var content = new Content().init({
-					title: 'My new enthraler',
-					template: tpl,
-				});
-				content.save();
-				trace('Creating content ${content.id}, ${content.guid}');
-				return BackendApiResult.Redirect('/i/${content.guid}/edit/');
+				return getTemplate()
+					.next(function (tpl) {
+						var content: Content = {
+							id: null,
+							created: Date.now(),
+							updated: Date.now(),
+							guid: ContentGuid.generate(),
+							copiedFromId: null,
+							templateId: tpl.id
+						};
+						return db.Content.insertOne(content).next(function (id) {
+							trace('Creating content ${id}, ${content.guid}');
+							return content.guid;
+						});
+					})
+					.next(function (guid) {
+						return BackendApiResult.Redirect('/i/${guid}/edit/');
+					});
 		}
 	}
 }

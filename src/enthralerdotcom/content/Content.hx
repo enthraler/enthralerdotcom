@@ -14,6 +14,5 @@ typedef Content = {
 	var updated(default, null): DateTime;
 	var templateId(default, null): Id<Template>;
 	var guid(default, null): ContentGuid;
-	var anonymousAuthorId(default, null): Id<AnonymousContentAuthor>;
-	var copiedFromId(default, null): Id<Content>;
+	var copiedFromId(default, null): Null<Id<Content>>;
 }

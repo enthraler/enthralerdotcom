@@ -14,4 +14,5 @@ typedef ContentVersion = {
 	var title(default, null): Text<255>;
 	var jsonContent(default, null): Text<9999999>;
 	var published(default, null): Null<DateTime>;
+	var anonymousAuthorId(default, null): Id<AnonymousContentAuthor>;
 }
