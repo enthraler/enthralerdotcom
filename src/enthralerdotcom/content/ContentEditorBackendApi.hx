@@ -70,46 +70,96 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 		switch action {
 			case SaveAnonymousVersion(contentId, authorGuid, newContent, templateVersionId, draft):
 				var ipAddress = new IpAddress(@:privateAccess context.request.clientIp);
-				return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newContent, templateVersionId, draft);
+				var newTitle = 'Untitled Enthraler';
+				return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newTitle, newContent, templateVersionId, draft);
 		}
 	}
 
-	public function saveAnonymousContentVersion(contentId:Int, authorGuid:UserGuid, authorIp:IpAddress, newContent:String, templateVersionId:Int, draft:Bool):Promise<BackendApiResult> {
-		var contentVersion = ContentVersion.manager.select($contentID == contentId, {orderBy: -created});
-		var author = AnonymousContentAuthor.manager.select(
-			$contentID == contentId
-			&& $guid == authorGuid
-			&& $ipAddress == authorIp
-			&& $modified > DateTools.delta(Date.now(), -24*60*60*1000)
-		);
-		if (contentVersion != null && author == null) {
-			// This content already exists but is from a different author.  We should block this request.
-			return Failure(new Error(tink.core.Error.ErrorCode.Forbidden, 'This content is no longer editable'));
-		}
-
-		if (contentVersion == null) {
-			// This is the first entry - save the author so we can keep track of them going forward.
-			author = new AnonymousContentAuthor().objectInit({
-				contentID: contentId,
-				guid: authorGuid,
-				ipAddress: authorIp
+	public function saveAnonymousContentVersion(contentId:Int, authorGuid:UserGuid, authorIp:IpAddress, newTitle:String, newContent:String, templateVersionId:Int, draft:Bool):Promise<BackendApiResult> {
+		var contentVersionPromise = db.ContentVersion
+			.where(ContentVersion.contentId == contentId)
+			.first(function (_): OrderBy<Dynamic> {
+				return [{
+					field: db.ContentVersion.fields.created,
+					order: Desc
+				}];
 			});
-		}
-		// Save the author - this will touch the "modified" field and give the user another 24 hours to keep editing.
-		author.save();
-
-		if (contentVersion == null || contentVersion.published != null) {
-			// Either there was no previous version, or the previous version was already published - so save a new one.
-			contentVersion = new ContentVersion();
-		}
-
-		contentVersion.objectInit({
-			contentID: contentId,
-			templateVersionID: templateVersionId,
-			jsonContent: newContent,
-			published: (draft) ? null : Date.now()
-		});
-		contentVersion.save();
-		return BackendApiResult.Done;
+		var authorPromise = db.AnonymousContentAuthor
+			.where(
+				AnonymousContentAuthor.contentId == contentId
+				&& AnonymousContentAuthor.guid == authorGuid
+				&& AnonymousContentAuthor.ipAddress == authorIp
+				&& AnonymousContentAuthor.updated > DateTools.delta(Date.now(), -24*60*60*1000)
+			)
+			.first();
+		return contentVersionPromise
+			.merge(authorPromise, function (c, a) return { contentVersion: c, author: a })
+			.next(function (data) {
+				var author = data.author,
+					contentVersion = data.contentVersion;
+				if (contentVersion != null && author == null) {
+					// This content already exists but is from a different author.  We should block this request.
+					return new Error(tink.core.Error.ErrorCode.Forbidden, 'This content is no longer editable');
+				}
+				if (contentVersion == null) {
+					// This is the first entry - save the author so we can keep track of them going forward.
+					author = {
+						id: null,
+						created: Date.now(),
+						updated: Date.now(),
+						contentId: contentId,
+						guid: authorGuid,
+						ipAddress: authorIp
+					};
+					return db.AnonymousContentAuthor
+						.insertOne(author)
+						.next(function (id) return new Pair(contentVersion, id));
+				}
+				// Renew the "updated" field so the author has another 24 hours to keep editing.
+				return db.AnonymousContentAuthor
+					.update(function (a) return [
+						a.updated.set(Date.now())
+					], {
+						where: function (a) return a.id == author.id
+					})
+					.next(function (_) return new Pair(contentVersion, author.id));
+			})
+			.next(function (pair) {
+				var existingVersion = pair.a,
+					anonymousAuthorId = pair.b,
+					publishedDate = (draft) ? null : Date.now();
+				if (existingVersion == null || existingVersion.published != null) {
+					// Either there was no previous version, or the previous version was already published - so save a new one.
+					var contentVersion: ContentVersion = {
+						id: null,
+						created: Date.now(),
+						updated: Date.now(),
+						contentId: contentId,
+						templateVersionId: templateVersionId,
+						title: newTitle,
+						jsonContent: newContent,
+						published: publishedDate,
+						anonymousAuthorId: anonymousAuthorId
+					};
+					return db.ContentVersion
+						.insertOne(contentVersion)
+						.next(function (id) return Noise);
+				} else {
+					// We have an existing draft, just update that version.
+					return db.ContentVersion
+						.update(function (cv) return [
+							cv.updated.set(Date.now()),
+							// Commenting out as we currently don't have a mechanism to update, and tink_sql is giving errors I can't be bothered investigating.
+							// cv.templateVersionId.set(templateVersionId),
+							cv.title.set(newTitle),
+							cv.jsonContent.set(newContent),
+							cv.published.set(publishedDate)
+						], {
+							where: function (cv) return cv.id == existingVersion.id
+						})
+						.next(function (_) return Noise);
+				}
+			})
+			.next(function (_) return BackendApiResult.Done);
 	}
 }
