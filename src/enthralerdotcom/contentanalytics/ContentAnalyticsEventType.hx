@@ -1,7 +1,6 @@
 package enthralerdotcom.contentanalytics;
 
 import enthralerdotcom.types.*;
-import ufront.ORM;
 import sys.db.Types;
 
 enum ContentAnalyticsEventType {

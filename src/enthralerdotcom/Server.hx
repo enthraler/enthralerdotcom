@@ -5,13 +5,12 @@ import dodrugs.Injector;
 import sys.db.*;
 import sys.FileSystem;
 import sys.io.File;
-import ufront.db.migrations.*;
 import tink.http.containers.*;
 import tink.http.Handler;
 import tink.web.routing.*;
 import tink.http.middleware.Static;
 import tink.http.Response.OutgoingResponse;
-using tink.core.Outcome;
+using tink.CoreApi;
 
 class Server {
 	static function main() {
@@ -21,13 +20,15 @@ class Server {
 			user: Sys.getEnv('DB_USERNAME'),
 			pass: Sys.getEnv('DB_PASSWORD'),
 		};
+		trace('Connect to ${cnxSettings.user}@${cnxSettings.host}');
 		if (FileSystem.exists('conf/db.json')) {
 			cnxSettings = tink.Json.parse(File.getContent('conf/db.json'));
 		}
 		#if nodejs
 			var driver = new tink.sql.drivers.MySql({
 				user: cnxSettings.user,
-				password: cnxSettings.pass
+				password: cnxSettings.pass,
+				host: cnxSettings.host
 			});
 			var db = new Db('enthraler', driver);
 			if (Sys.args()[0] == '--migrate') {
@@ -49,9 +50,6 @@ class Server {
 	static function getInjector(db: Db) {
 		return Injector.create('enthralerdotcom', [
 			var _:Db = db,
-			// MigrationConnection,
-			// MigrationManager,
-			// MigrationApi,
 		]);
 	}
 
@@ -79,11 +77,27 @@ class Server {
 	}
 
 	static function cliMain(db) {
+		// TODO: this line doesn't need to be here, except dodrugs is throwing an error without it. Need to investigate.
 		var injector = getInjector(db);
-		// var migrationApi = injector.get(MigrationApi);
-		// migrationApi.ensureMigrationsTableExists();
-		// migrationApi.syncMigrationsUp().sure();
-		trace('Migrations complete');
+		Promise.inParallel([
+			db.AnonymousContentAuthor.create(),
+			db.Content.create(),
+			db.ContentVersion.create(),
+			db.ContentResource.create(),
+			db.ContentResourceJoinContentVersion.create(),
+			db.ContentAnalyticsEvent.create(),
+			db.Template.create(),
+			db.TemplateVersion.create()
+		]).handle(function (outcome) {
+			switch outcome {
+				case Success(_):
+					trace('Migrations complete');
+					Sys.exit(0);
+				case Failure(err):
+					haxe.Log.trace(err.message, err.pos);
+					Sys.exit(1);
+			}
+		});
 	}
 }
 

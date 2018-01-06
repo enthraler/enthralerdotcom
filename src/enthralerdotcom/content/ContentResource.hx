@@ -13,6 +13,7 @@ typedef ContentResource = {
 	var filePath(default, null): FilePath;
 }
 
+@:table(_join_ContentResource_ContentVersion)
 typedef ContentResourceJoinContentVersion = {
 	var contentResourceId(default, null): Id<ContentResource>;
 	var contentVersionId(default, null): Id<ContentVersion>;
