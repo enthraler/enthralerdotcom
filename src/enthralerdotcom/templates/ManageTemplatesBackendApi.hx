@@ -62,16 +62,40 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 	}
 
 	public function pullTemplateFromGithubRepo(githubUser:String, githubRepo:String, ?tpl:Template):Promise<BackendApiResult> {
-		if (tpl == null) {
-			tpl = new Template();
-		}
 		return getGithubInfo(githubUser, githubRepo)
 			.next(function (data) {
-				tpl.name = '$githubUser/$githubRepo';
-				tpl.description = data.description;
-				tpl.homepage = new Url(data.html_url);
-				tpl.source = TemplateSource.Github(githubUser, githubRepo);
-				tpl.save();
+				var name = '$githubUser/$githubRepo',
+					description = data.description,
+					homepage = new Url(data.html_url),
+					sourceJson = Json.stringify(TemplateSource.Github(githubUser, githubRepo));
+				if (tpl == null) {
+					tpl = {
+						id: null,
+						created: Date.now(),
+						updated: Date.now(),
+						name: name,
+						description: description,
+						homepage: homepage,
+						sourceJson: sourceJson
+					};
+					return db.Template
+						.insertOne(tpl)
+						.next(function (_) return Noise);
+				} else {
+					return db.Template
+						.update(function (t) return [
+							t.updated.set(Date.now()),
+							t.name.set(name),
+							t.description.set(description),
+							t.homepage.set(homepage),
+							t.sourceJson.set(sourceJson)
+						], {
+							where: function (t) return t.id == tpl.id
+						})
+						.next(function (_) return Noise);
+				}
+			})
+			.next(function (_) {
 				return getGithubTags(githubUser, githubRepo);
 			})
 			.next(function (tags) {
@@ -111,69 +135,88 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 			major = Std.parseInt(parts[0]),
 			minor = Std.parseInt(parts[1]),
 			patch = Std.parseInt(parts[2]),
-			version = TemplateVersion.manager.select(
-				$templateID == tpl.id
-				&& $major==major
-				&& $minor==minor
-				&& $patch==patch
-			);
-		if (version == null) {
-			version = new TemplateVersion();
-			version.major = major;
-			version.minor = minor;
-			version.patch = patch;
-			version.template = tpl;
-			version.basePath = new Url('https://cdn.rawgit.com/$githubUser/$githubRepo/$tag/');
-		}
-		return
-			loadUrl(version.basePath + 'package.json')
-				.next(function (resp) {
-					var data:{enthraler:EnthralerPackageInfo} = Json.parse(resp);
-					version.mainUrl = new Url(version.basePath + data.enthraler.main);
-					version.schemaUrl = new Url(version.basePath + data.enthraler.schema);
-					return loadUrl(version.basePath + 'README.md')
-						.recover(function (err:Error) return "")
-						.next(function (readmeStr:String):Noise {
-							version.readme = (readmeStr!="") ? readmeStr : null;
-							return Noise;
-						});
-				})
-				.next(function (_):BackendApiResult {
-					version.save();
-					return BackendApiResult.Done;
-				});
+			baseUrl = new Url('https://cdn.rawgit.com/$githubUser/$githubRepo/$tag/'),
+			existingVersion: TemplateVersion = null,
+			packageInfo: {
+				name: String,
+				description: String,
+				homepage: String,
+				enthraler: EnthralerPackageInfo,
+			} = null,
+			mainUrl = null,
+			schemaUrl = null;
+		return db.TemplateVersion
+			.where(
+				TemplateVersion.templateId == tpl.id
+				&& TemplateVersion.major == major
+				&& TemplateVersion.minor == minor
+				&& TemplateVersion.patch == patch
+			)
+			.first()
+			.next(function (version) {
+				existingVersion = version;
+				return loadUrl(baseUrl);
+			})
+			.next(function (resp) {
+				packageInfo = Json.parse(resp);
+				mainUrl = new Url(baseUrl + packageInfo.enthraler.main);
+				schemaUrl = new Url(baseUrl + packageInfo.enthraler.schema);
+				return loadUrl(baseUrl + 'README.md').recover(function (err:Error) return "");
+			})
+			.next(function (readme:String) {
+				if (readme == "") {
+					readme = null;
+				}
+				if (existingVersion == null) {
+					var version = {
+						id: null,
+						created: Date.now(),
+						updated: Date.now(),
+						templateId: tpl.id,
+						major: major,
+						minor: minor,
+						patch: patch,
+						baseUrl: baseUrl,
+						mainUrl: mainUrl,
+						schemaUrl: schemaUrl,
+						readme: readme,
+					};
+					return db.TemplateVersion.insertOne(version).next(function (id) return Noise);
+				} else {
+					return db.TemplateVersion.update(function (tv) {
+						return [
+							tv.updated.set(Date.now()),
+							tv.mainUrl.set(mainUrl),
+							tv.schemaUrl.set(schemaUrl),
+							tv.readme.set(readme),
+						];
+					}, {
+						where: function (tv) return tv.id == existingVersion.id
+					})
+					.next(function (_) return Noise);
+				}
+				return Noise;
+			});
 	}
 
 	function loadUrl(url:String):Promise<String> {
 		return Future.async(function (cb) {
-			// Tech debt: at time of writing, haxe.Http has an odd PHP implementation that is throwing EOF.
-			// Probably this error: https://github.com/HaxeFoundation/haxe/issues/6244
-			// Let's use CURL instead!
-
-			var curl = untyped __call__("curl_init");
-			untyped __call__("curl_setopt", curl, untyped __php__('CURLOPT_URL'), url);
-			untyped __call__("curl_setopt", curl, untyped __php__('CURLOPT_RETURNTRANSFER'), true);
-			untyped __call__("curl_setopt", curl, untyped __php__('CURLOPT_USERAGENT'), 'enthraler');
-			var resp:Dynamic = untyped __call__("curl_exec", curl);
-
-			var httpStatus:Int = untyped __call__("curl_getinfo", curl, untyped __php__('CURLINFO_HTTP_CODE'));
-			if (httpStatus == 200) {
-				var responseText:String = resp;
-				cb(Success(responseText));
-			} else {
-				var error:String = untyped __call__("curl_error", curl);
-				cb(Failure(new Error('Failed to load $url: $error. $resp')));
-			}
-
-			untyped __call__("curl_close", curl);
+			var http = new Http(url);
+			var status = null;
+			http.onStatus = function (s) status = s;
+			http.onData = function (data) cb(Success(data));
+			http.onError = function (err) cb(Failure(new Error(status, err)));
+			http.request();
 		});
 	}
 
 	public function reloadTemplate(id:Int):Promise<BackendApiResult> {
-		var tpl = Template.manager.get(id);
-		switch tpl.source {
-			case Github(username, repo):
-				return pullTemplateFromGithubRepo(username, repo, tpl);
-		}
+		return db.Template.where(Template.id == id).first().next(function (tpl) {
+			var source: TemplateSource = Json.parse(tpl.sourceJson);
+			switch source {
+				case Github(username, repo):
+					return pullTemplateFromGithubRepo(username, repo, tpl);
+			}
+		});
 	}
 }
