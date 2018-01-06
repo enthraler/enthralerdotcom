@@ -8,7 +8,9 @@
   "scripts": {
     "start": "webpack-dev-server --open",
     "webpack": "node node_modules/webpack/bin/webpack.js",
-    "watch": "node node_modules/webpack/bin/webpack.js --watch"
+    "watch": "node node_modules/webpack/bin/webpack.js --watch",
+    "docker": "docker-compose up",
+    "docker_migrate": "docker-compose run --rm node node server.js --migrate"
   },
   "dependencies": {
     "babel-polyfill": "^6.22.0",
