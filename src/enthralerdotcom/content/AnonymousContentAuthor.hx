@@ -11,7 +11,7 @@ We use a unique GUID, their IP address, and a timestamp to authenticate that the
 // @:index(contentID, guid)
 // @:index(guid)
 typedef AnonymousContentAuthor = {
-	var id(default, null): Id<AnonymousContentAuthor>;
+	@:autoIncrement @:primary var id(default, null): Id<AnonymousContentAuthor>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var contentId(default, null): Id<Content>;

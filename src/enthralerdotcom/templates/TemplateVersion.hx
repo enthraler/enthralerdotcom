@@ -7,7 +7,7 @@ import tink.sql.types.*;
 
 // @:index(templateID, major, minor, patch, unique)
 typedef TemplateVersion = {
-	var id(default, null): Id<TemplateVersion>;
+	@:autoIncrement @:primary var id(default, null): Id<TemplateVersion>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var templateId(default, null): Id<Template>;

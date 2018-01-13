@@ -9,7 +9,7 @@ import tink.sql.types.*;
 // @:index(templateId)
 // @:index(copiedFromId)
 typedef Content = {
-	var id(default, null): Id<Content>;
+	@:autoIncrement @:primary var id(default, null): Id<Content>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var templateId(default, null): Id<Template>;

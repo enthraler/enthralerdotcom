@@ -6,7 +6,7 @@ import tink.sql.types.*;
 
 // @:index(contentID, published)
 typedef ContentVersion = {
-	var id(default, null): Id<ContentVersion>;
+	@:autoIncrement @:primary var id(default, null): Id<ContentVersion>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var contentId(default, null): Id<Content>;

@@ -4,7 +4,7 @@ import enthralerdotcom.types.*;
 import tink.sql.types.*;
 
 typedef Template = {
-	var id(default, null): Id<Template>;
+	@:autoIncrement @:primary var id(default, null): Id<Template>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var name(default, null): Text<255>;

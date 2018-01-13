@@ -7,7 +7,7 @@ import enthralerdotcom.templates.TemplateVersion;
 import tink.sql.types.*;
 
 typedef ContentAnalyticsEvent = {
-	var id(default, null): Id<Content>;
+	@:autoIncrement @:primary var id(default, null): Id<Content>;
 	var created(default, null): DateTime;
 	var contentId(default, null): Id<Content>;
 	var contentVersionId(default, null): Id<ContentVersion>;

@@ -6,7 +6,7 @@ import tink.sql.types.*;
 using tink.CoreApi;
 
 typedef ContentResource = {
-	var id(default, null): Id<ContentResource>;
+	@:autoIncrement @:primary var id(default, null): Id<ContentResource>;
 	var created(default, null): DateTime;
 	var updated(default, null): DateTime;
 	var contentVersionId(default, null): Id<ContentVersion>;
@@ -15,6 +15,7 @@ typedef ContentResource = {
 
 @:table(_join_ContentResource_ContentVersion)
 typedef ContentResourceJoinContentVersion = {
+	@:autoIncrement @:primary var id(default, null): Id<ContentResourceJoinContentVersion>;
 	var contentResourceId(default, null): Id<ContentResource>;
 	var contentVersionId(default, null): Id<ContentVersion>;
 	var created(default, null): DateTime;
