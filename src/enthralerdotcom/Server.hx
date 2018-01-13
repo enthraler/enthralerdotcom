@@ -58,7 +58,8 @@ class Server {
 
 		var container = new NodeContainer(3000);
 		var router = new Router<Root>(new Root(getInjector(cnx)));
-		var handler:Handler = function(req) {
+		var handler:Handler = function(req: tink.http.Request.IncomingRequest) {
+			js.Node.console.log('[${req.clientIp}] ${req.header.method}: ${req.header.url}');
 			return router.route(Context.ofRequest(req))
 				.recover(OutgoingResponse.reportError);
 		};
