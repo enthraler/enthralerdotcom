@@ -80,7 +80,19 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 					};
 					return db.Template
 						.insertOne(tpl)
-						.next(function (_) return Noise);
+						.next(function (id) {
+							// These read-only types are getting annyoing. Need a macro helper.
+							tpl = {
+								id: id,
+								created: tpl.created,
+								updated: tpl.updated,
+								name: tpl.name,
+								description: tpl.description,
+								homepage: tpl.homepage,
+								sourceJson: tpl.sourceJson,
+							};
+							return Noise;
+						});
 				} else {
 					return db.Template
 						.update(function (t) return [
@@ -104,7 +116,16 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 					// Create a TemplateVersion
 					tagFutures.push(saveVersionInfo(githubUser, githubRepo, tpl, tag));
 				}
-				return Future.ofMany(tagFutures).map(function (_) return BackendApiResult.Done);
+				return Future.ofMany(tagFutures).map(function (results): Outcome<BackendApiResult, Error> {
+					for (outcome in results) {
+						switch outcome {
+							case Success(_):
+							case Failure(err):
+								return Failure(new Error(err.code, 'Error saving template version: ${err.message}', err.pos));
+						}
+					}
+					return Success(BackendApiResult.Done);
+				});
 			});
 	}
 
@@ -138,13 +159,14 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 			baseUrl = new Url('https://cdn.rawgit.com/$githubUser/$githubRepo/$tag/'),
 			existingVersion: TemplateVersion = null,
 			packageInfo: {
-				name: String,
-				description: String,
-				homepage: String,
-				enthraler: EnthralerPackageInfo,
+				var name: String;
+				@:optional var description: String;
+				@:optional var homepage: String;
+				var enthraler: EnthralerPackageInfo;
 			} = null,
 			mainUrl = null,
 			schemaUrl = null;
+		js.Node.console.log('save version info', githubUser, githubRepo, tpl, tag);
 		return db.TemplateVersion
 			.where(
 				TemplateVersion.templateId == tpl.id
@@ -152,10 +174,13 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 				&& TemplateVersion.minor == minor
 				&& TemplateVersion.patch == patch
 			)
-			.first()
-			.next(function (version) {
+			.all()
+			.next(function (versions) {
+				var version = versions[0];
 				existingVersion = version;
-				return loadUrl(baseUrl);
+				js.Node.console.log('existing version', version, baseUrl);
+				return loadUrl(baseUrl + 'package.json');
+
 			})
 			.next(function (resp) {
 				packageInfo = Json.parse(resp);
@@ -205,13 +230,15 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 			var status = null;
 			http.onStatus = function (s) status = s;
 			http.onData = function (data) cb(Success(data));
-			http.onError = function (err) cb(Failure(new Error(status, err)));
+			http.onError = function (err) cb(Failure(new Error(status, http.responseData)));
+			http.addHeader('User-Agent', 'enthraler.com API');
 			http.request();
 		});
 	}
 
 	public function reloadTemplate(id:Int):Promise<BackendApiResult> {
-		return db.Template.where(Template.id == id).first().next(function (tpl) {
+		return db.Template.where(Template.id == id).all().next(function (templates) {
+			var tpl = templates[0];
 			var source: TemplateSource = Json.parse(tpl.sourceJson);
 			switch source {
 				case Github(username, repo):

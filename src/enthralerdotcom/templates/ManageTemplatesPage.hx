@@ -32,10 +32,10 @@ class ManageTemplatesPage extends UniversalPage<ManageTemplatesAction, ManageTem
 
 	public function new(backendApi:ManageTemplatesBackendApi) {
 		super(backendApi);
+		Head.prepareHead(this.head);
 	}
 
 	override function render() {
-		Head.prepareHead(this.head);
 		this.head.setTitle('Manage templates!');
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
