@@ -36,12 +36,14 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 				});
 			})
 			.next(function (data): ViewTemplateProps {
+				// Note, we're using `readme.toString()` because tink_sql is incorrectly returning a StringBuf not a String
+				var readme = data.latestVersion.readme != null ? Markdown.markdownToHtml(data.latestVersion.readme.toString()) : "";
 				return {
 					template: {
 						name: data.tpl.name,
 						description: data.tpl.description,
 						homepage: data.tpl.homepage,
-						readme: Markdown.markdownToHtml(data.latestVersion.readme),
+						readme: readme,
 						versions: [for (v in data.versions) {
 							version: TemplateVersionUtil.getSemver(v),
 							mainUrl: v.mainUrl

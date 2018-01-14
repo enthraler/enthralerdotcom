@@ -38,7 +38,7 @@ class ViewTemplatePage extends UniversalPage<ViewTemplateAction, ViewTemplatePro
 		Head.prepareHead(this.head);
 		this.head.setTitle('Manage templates!');
 		var tpl = this.props.template;
-		var versionListItems = [for (v in tpl.versions) jsx('<li>${v.version}</li>')];
+		var versionListItems = [for (v in tpl.versions) jsx('<li>${v.version.toString()}</li>')];
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
 			<h1 className="title">${tpl.name}</h1>
