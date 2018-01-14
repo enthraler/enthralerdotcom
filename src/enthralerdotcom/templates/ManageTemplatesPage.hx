@@ -68,7 +68,7 @@ class ManageTemplatesPage extends UniversalPage<ManageTemplatesAction, ManageTem
 				latestVersion = (numVersions > 0) ? tpl.versions[numVersions-1].version : "";
 			return jsx('<tr>
 				<th>
-					<a href=${'/templates/'+tpl.name}>${tpl.name}</a>
+					<a href=${'/templates/github/'+tpl.name}>${tpl.name}</a>
 				</th>
 				<td>
 					<a href="${tpl.homepage}">${tpl.homepage}</a>
