@@ -1,7 +1,7 @@
 package enthralerdotcom.content;
 
 import enthralerdotcom.types.*;
-import tink.sql.types.*;
+import tink.sql.Types;
 
 /**
 When an unauthenticated user creates an enthraler, we only allow them to edit it while the tab is open.

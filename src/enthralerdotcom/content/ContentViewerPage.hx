@@ -35,6 +35,7 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 
 	public function new(api:ContentViewerBackendApi) {
 		super(api);
+		Head.prepareHead(this.head);
 	}
 
 	@:client
@@ -43,7 +44,6 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 	}
 
 	override function render() {
-		Head.prepareHead(this.head);
 		this.head.setTitle('Content Editor');
 		var iframeSrc = (props.contentVersionId != null)
 			? '/i/${props.guid}/embed/'

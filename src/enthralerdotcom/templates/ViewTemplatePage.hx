@@ -32,10 +32,10 @@ class ViewTemplatePage extends UniversalPage<ViewTemplateAction, ViewTemplatePro
 
 	public function new(templatesApi:ViewTemplateBackendApi) {
 		super(templatesApi);
+		Head.prepareHead(this.head);
 	}
 
 	override function render() {
-		Head.prepareHead(this.head);
 		this.head.setTitle('Manage templates!');
 		var tpl = this.props.template;
 		var versionListItems = [for (v in tpl.versions) jsx('<li>${v.version.toString()}</li>')];

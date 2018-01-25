@@ -2,7 +2,7 @@ package enthralerdotcom.content;
 
 import enthralerdotcom.templates.Template;
 import enthralerdotcom.types.*;
-import tink.sql.types.*;
+import tink.sql.Types;
 
 // @:index(guid, unique)
 // @:index(title)

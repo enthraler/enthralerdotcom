@@ -52,6 +52,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	public function new(api:ContentEditorBackendApi) {
 		super(api);
+		Head.prepareHead(this.head);
 	}
 
 	static function loadFromUrl(url:String):Promise<String> {
@@ -93,7 +94,6 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 	}
 
 	override function render() {
-		Head.prepareHead(this.head);
 		this.head.setTitle('Content Editor');
 		var iframeSrc = (props.currentVersion.versionId != null)
 			? '/i/${props.content.guid}/embed/${props.currentVersion.versionId}'

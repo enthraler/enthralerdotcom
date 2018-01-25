@@ -3,7 +3,7 @@ package enthralerdotcom.templates;
 import enthralerdotcom.Db;
 import enthralerdotcom.templates.Template;
 import enthralerdotcom.types.*;
-import tink.sql.types.*;
+import tink.sql.Types;
 
 // @:index(templateID, major, minor, patch, unique)
 typedef TemplateVersion = {
@@ -17,7 +17,7 @@ typedef TemplateVersion = {
 	var baseUrl(default, null): Url;
 	var mainUrl(default, null): Url;
 	var schemaUrl(default, null): Url;
-	var readme(default, null): Null<Text<9999999>>;
+	var readme(default, null): Null<MediumText>;
 }
 
 class TemplateVersionUtil {

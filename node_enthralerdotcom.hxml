@@ -17,4 +17,5 @@
 -lib cleversort
 -cp src
 -main enthralerdotcom.Server
+-D prevent-webpack-js-output
 -js bin/server.js

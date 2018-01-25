@@ -2,7 +2,7 @@ package enthralerdotcom.content;
 
 import enthralerdotcom.content.ContentVersion;
 import enthralerdotcom.types.*;
-import tink.sql.types.*;
+import tink.sql.Types;
 using tink.CoreApi;
 
 typedef ContentResource = {
