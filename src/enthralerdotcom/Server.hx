@@ -14,6 +14,7 @@ using tink.CoreApi;
 
 class Server {
 	static function main() {
+		captureTraces();
 		var cnxSettings = {
 			host: Sys.getEnv('DB_HOST'),
 			database: Sys.getEnv('DB_DATABASE'),
@@ -53,13 +54,28 @@ class Server {
 		]);
 	}
 
-	static function webMain(cnx) {
+	static function captureTraces() {
 		SmallUniverse.captureTraces();
+		var suTrace = haxe.Log.trace;
+		haxe.Log.trace = function (v: Dynamic, ?infos: haxe.PosInfos) {
+			suTrace(v, infos);
+			// Also print to the Node JS console
+			var className = infos.className.substr(infos.className.lastIndexOf('.') + 1),
+				params = [v],
+				resetColor = "\x1b[0m",
+				dimColor = "\x1b[2m";
+			if (infos.customParams != null) {
+				for (p in infos.customParams) params.push(p);
+			}
+			js.Node.console.log('${dimColor}${className}.${infos.methodName}():${infos.lineNumber}:${resetColor} ${params.join(" ")}');
+		};
+	}
 
+	static function webMain(cnx) {
 		var container = new NodeContainer(3000);
 		var router = new Router<Root>(new Root(getInjector(cnx)));
 		var handler:Handler = function(req: tink.http.Request.IncomingRequest) {
-			js.Node.console.log('[${req.clientIp}] ${req.header.method}: ${req.header.url}');
+			trace('[${req.clientIp}] ${req.header.method}: ${req.header.url}');
 			return router.route(Context.ofRequest(req))
 				.recover(OutgoingResponse.reportError);
 		};
