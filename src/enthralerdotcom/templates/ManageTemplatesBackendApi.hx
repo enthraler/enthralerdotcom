@@ -166,7 +166,6 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 			} = null,
 			mainUrl = null,
 			schemaUrl = null;
-		js.Node.console.log('save version info', githubUser, githubRepo, tpl, tag);
 		return db.TemplateVersion
 			.where(
 				TemplateVersion.templateId == tpl.id
@@ -178,7 +177,6 @@ class ManageTemplatesBackendApi implements BackendApi<ManageTemplatesAction, Man
 			.next(function (versions) {
 				var version = versions[0];
 				existingVersion = version;
-				js.Node.console.log('existing version', version, baseUrl);
 				return loadUrl(baseUrl + 'package.json');
 
 			})
