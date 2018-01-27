@@ -40,6 +40,7 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 				var readme = data.latestVersion.readme != null ? Markdown.markdownToHtml(data.latestVersion.readme.toString()) : "";
 				return {
 					template: {
+						id: data.tpl.id,
 						name: data.tpl.name,
 						description: data.tpl.description,
 						homepage: data.tpl.homepage,
@@ -65,26 +66,6 @@ class ViewTemplateBackendApi implements BackendApi<ViewTemplateAction, ViewTempl
 	}
 
 	public function processAction(context: SmallUniverseContext, action: ViewTemplateAction):Promise<BackendApiResult> {
-		switch action {
-			case CreateNewContent:
-				return getTemplate()
-					.next(function (tpl) {
-						var content: Content = {
-							id: null,
-							created: Date.now(),
-							updated: Date.now(),
-							guid: ContentGuid.generate(),
-							copiedFromId: null,
-							templateId: tpl.id
-						};
-						return db.Content.insertOne(content).next(function (id) {
-							trace('Creating content ${id}, ${content.guid}');
-							return content.guid;
-						});
-					})
-					.next(function (guid) {
-						return BackendApiResult.Redirect('/i/${guid}/edit/');
-					});
-		}
+		return BackendApiResult.Done;
 	}
 }

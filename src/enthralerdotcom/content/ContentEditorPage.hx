@@ -15,11 +15,13 @@ import enthralerdotcom.services.client.ErrorNotificationService;
 #end
 
 enum ContentEditorAction {
+	SaveFirstAnonymousVersion(authorGuid: String, newContent: String, templateId: Int, templateVersionId: Int, draft: Bool);
 	SaveAnonymousVersion(contentId:Int, authorGuid:String, newContent:String, templateVersionId:Int, draft:Bool);
 }
 
 typedef ContentEditorProps = {
 	template:{
+		id:Int,
 		name:String,
 		versionId:Int,
 		version:String,
@@ -27,9 +29,9 @@ typedef ContentEditorProps = {
 		schemaUrl:String
 	},
 	content:{
-		id:Int,
+		id:Null<Int>,
 		title:String,
-		guid:String,
+		guid:Null<String>,
 	},
 	currentVersion:{
 		versionId:Null<Int>,
@@ -97,7 +99,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		this.head.setTitle('Content Editor');
 		var iframeSrc = (props.currentVersion.versionId != null)
 			? '/i/${props.content.guid}/embed/${props.currentVersion.versionId}'
-			: 'about:blank';
+			: '/i/new/${props.template.id}/embed/';
 		var iframeStyle = {
 			display: 'block',
 			width: '960px',
@@ -167,7 +169,9 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			ErrorNotificationService.inst.logMessage("We can't save while you have validation errors, please fix them first");
 			return;
 		}
-		var action = SaveAnonymousVersion(props.content.id, getUserGuid(), state.contentJson, props.template.versionId, draft);
+		var action = props.content.id != null
+			? SaveAnonymousVersion(props.content.id, getUserGuid(), state.contentJson, props.template.versionId, draft)
+			: SaveFirstAnonymousVersion(getUserGuid(), state.contentJson, props.template.id, props.template.versionId, draft);
 		this.trigger(action).handle(function (outcome) switch outcome {
 			case Failure(err):
 				ErrorNotificationService.inst.logError(err, onSave.bind(draft), 'Try Again');

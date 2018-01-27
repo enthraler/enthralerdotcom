@@ -20,11 +20,41 @@ class Routes {
 		this.db = injector.get(Db);
 	}
 
+	@:all('/new/$templateId')
+	public function newContent(templateId: Int, context: SmallUniverseContext) {
+		return new SmallUniverse(function () {
+			return injector.instantiateWith(ContentEditorPage, [
+				templateId,
+				var guid: String = null
+			]);
+		}, context);
+	}
+
+	@:get('/new/$templateId/embed/')
+	public function newEmbed(templateId: Int) {
+		return db.TemplateVersion
+			.where(TemplateVersion.templateId == templateId)
+			.first(TemplateVersionUtil.orderBySemver(db))
+			.next(function (row) {
+				var baseUrl = '/jslib/v1',
+					contentUrl = '/i/new/${templateId}/embed/blank.json',
+					templateUrl = row.mainUrl,
+					url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
+				return doHttpRedirect(url);
+			});
+	}
+
+	@:get('/new/$templateId/embed/blank.json')
+	public function newEmbedJson(templateId: Int) {
+		return {};
+	}
+
 	@:all('/$guid/edit')
 	public function editContent(guid: String, context: SmallUniverseContext) {
 		return new SmallUniverse(function () {
 			return injector.instantiateWith(ContentEditorPage, [
-				guid
+				guid,
+				var templateId: Int = null
 			]);
 		}, context);
 	}
@@ -47,8 +77,8 @@ class Routes {
 	@:get('/$guid/embed/$id')
 	public function getEmbedFrame(guid: String, ?id: Int): Promise<OutgoingResponse> {
 		return this.getVersion(guid, id).next(function (row) {
-			var baseUrl = '/jslib/0.1.1',
-				contentUrl = row.Content.guid,
+			var baseUrl = '/jslib/v1',
+				contentUrl = '/i/${row.Content.guid}/data/${id != null ? '$id/' : ""}',
 				templateUrl = row.TemplateVersion.mainUrl,
 				url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
 			return doHttpRedirect(url);

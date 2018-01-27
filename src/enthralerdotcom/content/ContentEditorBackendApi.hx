@@ -12,23 +12,32 @@ import tink.sql.OrderBy;
 #end
 
 class ContentEditorBackendApi implements BackendApi<ContentEditorAction, ContentEditorProps> {
-	var guid: String;
 	var db: Db;
+	var contentGuidOrTemplateId: Either<String, Int>;
 
-	public function new(db: Db, guid: String) {
+	public function new(db: Db, guid: String, templateId: Int) {
 		this.db = db;
-		this.guid = guid;
+		this.contentGuidOrTemplateId = (guid != null) ? Left(guid) : Right(templateId);
 	}
 
-	public function get(context: SmallUniverseContext):Promise<ContentEditorProps> {
+	public function get(context: SmallUniverseContext): Promise<ContentEditorProps> {
+		switch contentGuidOrTemplateId {
+			case Left(guid):
+				return getExisting(guid);
+			case Right(templateId):
+				return getNew(templateId);
+		}
+	}
+
+	public function getExisting(guid: String): Promise<ContentEditorProps> {
 		return db.Content
+			.join(db.Template)
+			.on(Content.templateId == Template.id)
 			.join(db.ContentVersion)
 			.on(ContentVersion.contentId == Content.id)
 			.join(db.TemplateVersion)
 			.on(TemplateVersion.id == ContentVersion.templateVersionId)
-			.join(db.Template)
-			.on(TemplateVersion.templateId == Template.id)
-			.where(Content.guid == this.guid && ContentVersion.published != null)
+			.where(Content.guid == guid)
 			.first(function (_): OrderBy<Dynamic> {
 				return [{
 					field: db.ContentVersion.fields.published,
@@ -36,18 +45,13 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 				}];
 			})
 			.next(function (result): Promise<ContentEditorProps> {
-				if (result == null) {
-					// TODO: If it is new content, with no version saved yet, create a new version.
-					return new Error(404, 'Content Version not found');
-				}
-				var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
-				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
 				var c = result.Content,
 					cv = result.ContentVersion,
 					tv = result.TemplateVersion,
 					tpl = result.Template;
 				var props:ContentEditorProps = {
 					template:{
+						id: tpl.id,
 						name: tpl.name,
 						version: TemplateVersionUtil.getSemver(tv),
 						versionId: tv.id,
@@ -69,11 +73,64 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 			});
 	}
 
+	public function getNew(templateId: Int): Promise<ContentEditorProps> {
+		return db.TemplateVersion
+			.join(db.Template)
+			.on(Template.id == TemplateVersion.templateId)
+			.where(TemplateVersion.templateId == templateId)
+			.first(TemplateVersionUtil.orderBySemver(db))
+			.next(function (row): Promise<ContentEditorProps> {
+				var tpl = row.Template;
+				var tv = row.TemplateVersion;
+				var props:ContentEditorProps = {
+					template:{
+						id: tpl.id,
+						name: tpl.name,
+						version: TemplateVersionUtil.getSemver(tv),
+						versionId: tv.id,
+						mainUrl: tv.mainUrl,
+						schemaUrl: tv.schemaUrl
+					},
+					content:{
+						id: null,
+						title: 'Untitled Enthraler',
+						guid: null,
+					},
+					currentVersion:{
+						versionId: null,
+						jsonContent: '{}',
+						published: null
+					}
+				};
+				return props;
+			});
+	}
+
 	public function processAction(context:SmallUniverseContext, action:ContentEditorAction):Promise<BackendApiResult> {
+		var ipAddress = new IpAddress(@:privateAccess context.request.clientIp);
+		var newTitle = 'Untitled Enthraler';
+		trace('process action', action);
 		switch action {
+			case SaveFirstAnonymousVersion(authorGuid, newContent, templateId, templateVersionId, draft):
+				trace('save first');
+				var content: Content = {
+					id: null,
+					created: Date.now(),
+					updated: Date.now(),
+					guid: ContentGuid.generate(),
+					copiedFromId: null,
+					templateId: templateId
+				};
+				return db.Content
+					.insertOne(content)
+					.next(function (contentId: Int) {
+						trace('Creating content ${contentId}, ${content.guid}');
+						return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newTitle, newContent, templateVersionId, draft);
+					})
+					.next(function (result) {
+						return BackendApiResult.Redirect('/i/${content.guid}/edit/');
+					});
 			case SaveAnonymousVersion(contentId, authorGuid, newContent, templateVersionId, draft):
-				var ipAddress = new IpAddress(@:privateAccess context.request.clientIp);
-				var newTitle = 'Untitled Enthraler';
 				return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newTitle, newContent, templateVersionId, draft);
 		}
 	}
@@ -81,11 +138,16 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 	public function saveAnonymousContentVersion(contentId:Int, authorGuid:UserGuid, authorIp:IpAddress, newTitle:String, newContent:String, templateVersionId:Int, draft:Bool):Promise<BackendApiResult> {
 		var contentVersionPromise = db.ContentVersion
 			.where(ContentVersion.contentId == contentId)
-			.first(function (_): OrderBy<Dynamic> {
+			.all(function (_): OrderBy<Dynamic> {
 				return [{
 					field: db.ContentVersion.fields.created,
 					order: Desc
 				}];
+			})
+			.next(function (versions) {
+				// Annoyingly, tink_sql can't do first() if the result is null, it will 404 rather than return nulll.
+				// So get all of them, and pick the first.
+				return versions[0];
 			});
 		var authorPromise = db.AnonymousContentAuthor
 			.where(
@@ -94,7 +156,12 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 				&& AnonymousContentAuthor.ipAddress == authorIp
 				&& AnonymousContentAuthor.updated > DateTools.delta(Date.now(), -24*60*60*1000)
 			)
-			.first();
+			.all()
+			.next(function (authors) {
+				// Annoyingly, tink_sql can't do first() if the result is null, it will 404 rather than return nulll.
+				// So get all of them, and pick the first.
+				return authors[0];
+			});
 		return contentVersionPromise
 			.merge(authorPromise, function (c, a) return { contentVersion: c, author: a })
 			.next(function (data) {
