@@ -1,6 +1,7 @@
 .haxelib/
 node_modules/
 bin/*.js
+bin/*.js.map
 bin/assets/*.js
 bin/assets/*.css
 bin/*.php

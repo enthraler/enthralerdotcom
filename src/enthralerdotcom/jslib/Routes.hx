@@ -11,7 +11,7 @@ class Routes {
 		var header = new ResponseHeader(OK, 200, [
 			new HeaderField('Content-Type', 'application/json')
 		]);
-		return new OutgoingResponse(header, CompileTime.readFile('bin/enthraler.js'));
+		return new OutgoingResponse(header, CompileTime.readFile('enthralerdotcom/jslib/enthraler.js'));
 	}
 
 	@:produces('application/javascript')
@@ -20,7 +20,7 @@ class Routes {
 		var header = new ResponseHeader(OK, 200, [
 			new HeaderField('Content-Type', 'application/json')
 		]);
-		return new OutgoingResponse(header, CompileTime.readFile('bin/enthralerHost.js'));
+		return new OutgoingResponse(header, CompileTime.readFile('enthralerdotcom/jslib/enthralerHost.js'));
 	}
 
 	@:get('/frame.html')
@@ -28,6 +28,6 @@ class Routes {
 		var header = new ResponseHeader(OK, 200, [
 			new HeaderField('Content-Type', 'text/html')
 		]);
-		return new OutgoingResponse(header, CompileTime.readFile('bin/frame.html'));
+		return new OutgoingResponse(header, CompileTime.readFile('enthralerdotcom/jslib/frame.html'));
 	}
 }
