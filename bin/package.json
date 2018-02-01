@@ -1,0 +1,11 @@
+{
+  "name": "enthralerdotcom",
+  "version": "0.1.0",
+  "description": "The website that powers enthraler.com",
+  "repository": "https://github.com/enthraler/enthralerdotcom.git",
+  "author": "Jason O'Neil <jason.oneil@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mysql": "^2.15.0"
+  }
+}
