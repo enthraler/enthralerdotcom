@@ -1,10 +1,10 @@
 language: node_js
 os:
   - linux
-  - osx
+  #- osx
 node_js:
   - "node"
-  - "lts/*"
+  #- "lts/*"
 cache:
   yarn: true
 script: "yarn webpack"
