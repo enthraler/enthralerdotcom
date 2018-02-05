@@ -3,8 +3,10 @@ os:
   - linux
   #- osx
 node_js:
-  - "node"
-  #- "lts/*"
+  #- "node"
+  - "lts/*"
 cache:
   yarn: true
-script: "yarn webpack"
+before_script:
+  - yarn list
+script: yarn webpack
