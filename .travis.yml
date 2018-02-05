@@ -9,4 +9,5 @@ cache:
   yarn: true
 before_script:
   - yarn list
+  - yarn run lix download
 script: yarn webpack
