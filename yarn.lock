@@ -2416,6 +2416,10 @@ lcid@^1.0.0:
   dependencies:
     invert-kv "^1.0.0"
 
+lix.pm@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/lix.pm/-/lix.pm-0.14.0.tgz#9e099a8452b459db0026654608a6625109b13121"
+
 load-json-file@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"
