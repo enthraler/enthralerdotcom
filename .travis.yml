@@ -9,5 +9,4 @@ cache:
   yarn: true
 before_script:
   - yarn list
-  - ln -s node_modules/.bin/haxe /usr/bin/haxe
 script: yarn webpack
