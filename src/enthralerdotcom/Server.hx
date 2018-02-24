@@ -84,7 +84,7 @@ class Server {
 			.handle(function (status) {
 				switch status {
 					case Running(arg1):
-						trace('Running: Listening on port 8080');
+						trace('Running: Listening on port 3000');
 					case Failed(err):
 						trace('Error starting server: $err');
 					case Shutdown:
