@@ -134,6 +134,9 @@ class Root {
 	@:sub('/i')
 	public function content() return new enthralerdotcom.content.Routes(injector);
 
+	@:sub('/api')
+	public function api() return new enthralerdotcom.api.Routes(injector);
+
 	@:all('/')
 	public function homepage(context: Context) {
 		return new SmallUniverse(function () {
