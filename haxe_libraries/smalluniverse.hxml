@@ -1,6 +1,6 @@
-# @install: lix --silent download "https://github.com/jasononeil/smalluniverse/archive/8ed2a33e3796346ff38866db3929c04871191c07.tar.gz" into smalluniverse/0.0.1/github/8ed2a33e3796346ff38866db3929c04871191c07
+# @install: lix --silent download "https://github.com/jasononeil/smalluniverse/archive/524bffa4052ec1625722d081ba74f0c9697ce33a.tar.gz" into smalluniverse/0.0.1/github/524bffa4052ec1625722d081ba74f0c9697ce33a
 -D smalluniverse=0.0.1
--cp ${HAXESHIM_LIBCACHE}/smalluniverse/0.0.1/github/8ed2a33e3796346ff38866db3929c04871191c07/src
+-cp ${HAXESHIM_LIBCACHE}/smalluniverse/0.0.1/github/524bffa4052ec1625722d081ba74f0c9697ce33a/src
 
 -lib tink_web
 -lib react

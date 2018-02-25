@@ -54,7 +54,10 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	public function new(api:ContentEditorBackendApi) {
 		super(api);
-		Head.prepareHead(this.head);
+	}
+
+	override public function componentWillMount() {
+		Head.prepareHead(this.head, this.props.content.guid);
 	}
 
 	static function loadFromUrl(url:String):Promise<String> {
