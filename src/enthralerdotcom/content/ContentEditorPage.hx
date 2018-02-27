@@ -54,10 +54,11 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	public function new(api:ContentEditorBackendApi) {
 		super(api);
+		Head.prepareHead(this.head);
 	}
 
 	override public function componentWillMount() {
-		Head.prepareHead(this.head, this.props.content.guid);
+		Head.addOEmbedCodes(this.head, this.props.content.guid);
 	}
 
 	static function loadFromUrl(url:String):Promise<String> {
@@ -112,7 +113,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
 			<h1 className="title">${props.content.title}</h1>
-			<h2 className="subtitle">Using template <a href=${"/templates/"+props.template.name}><em>${props.template.name}</em></a></h2>
+			<h2 className="subtitle">Using template <a href=${"/templates/github/"+props.template.name}><em>${props.template.name}</em></a></h2>
 			<div className="field is-grouped">
 				<div className="control">
 					<a className="button is-primary" onClick=${onSave.bind(false)}>Save</a>
@@ -210,10 +211,11 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		if (state.validationResult != null) {
 			return;
 		}
+		js.Browser.window.console.log('location',  js.Browser.window.location.origin);
 		preview.contentWindow.postMessage(Json.stringify({
 			src: '' + js.Browser.window.location,
 			context: EnthralerMessages.receiveAuthorData,
 			authorData: this.state.contentData
-		}), js.Browser.window.location.origin);
+		}), 'https://cdn.rawgit.com');
 	}
 }

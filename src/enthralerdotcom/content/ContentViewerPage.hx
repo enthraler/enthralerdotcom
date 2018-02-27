@@ -35,10 +35,11 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 
 	public function new(api:ContentViewerBackendApi) {
 		super(api);
+		Head.prepareHead(this.head);
 	}
 
 	override public function componentWillMount() {
-		Head.prepareHead(this.head, this.props.guid);
+		Head.addOEmbedCodes(this.head, this.props.guid);
 	}
 
 	@:client
