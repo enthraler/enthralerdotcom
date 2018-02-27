@@ -19,6 +19,9 @@ module.exports = {
             {
                 test: /\.hxml$/,
                 loader: 'haxe-loader',
+                options: {
+                    debug: process.env.NODE_ENV !== 'production'
+                }
             },
             {
                 test: /\.js$/,
@@ -51,4 +54,5 @@ module.exports = {
         },
         publicPath: "/assets/"
     },
+    devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'cheap-module-eval-source-map'
 };

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "webpack-dev-server --open",
-    "webpack": "node node_modules/webpack/bin/webpack.js",
+    "webpack": "NODE_ENV=production webpack",
     "watch": "node node_modules/webpack/bin/webpack.js --watch",
     "docker": "docker-compose up",
     "docker_migrate": "docker-compose run --rm node node server.js --migrate",
