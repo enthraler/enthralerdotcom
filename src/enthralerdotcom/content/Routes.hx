@@ -14,10 +14,14 @@ using tink.CoreApi;
 class Routes {
 	var injector: Injector<"enthralerdotcom">;
 	var db: Db;
+	var siteUrl: String;
+	var jsLibBaseUrl: String;
 
 	public function new(injector) {
 		this.injector = injector;
 		this.db = injector.get(Db);
+		this.siteUrl = injector.get(var siteUrl: String);
+		this.jsLibBaseUrl = injector.get(var jsLibBaseUrl: String);
 	}
 
 	@:all('/new/$templateId')
@@ -36,8 +40,8 @@ class Routes {
 			.where(TemplateVersion.templateId == templateId)
 			.first(TemplateVersionUtil.orderBySemver(db))
 			.next(function (row) {
-				var baseUrl = '/jslib/v1',
-					contentUrl = '/i/new/${templateId}/embed/blank.json',
+				var baseUrl = 'https://cdn.rawgit.com/enthraler/enthraler/0.1.0/bin',
+					contentUrl = siteUrl + 'i/new/${templateId}/embed/blank.json',
 					templateUrl = row.mainUrl,
 					url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
 				return doHttpRedirect(url);
@@ -77,8 +81,8 @@ class Routes {
 	@:get('/$guid/embed/$id')
 	public function getEmbedFrame(guid: String, ?id: Int): Promise<OutgoingResponse> {
 		return this.getVersion(guid, id).next(function (row) {
-			var baseUrl = '/jslib/v1',
-				contentUrl = '/i/${row.Content.guid}/data/${id != null ? '$id/' : ""}',
+			var baseUrl = jsLibBaseUrl,
+				contentUrl = siteUrl + 'i/${row.Content.guid}/data/${id != null ? '$id/' : ""}',
 				templateUrl = row.TemplateVersion.mainUrl,
 				url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
 			return doHttpRedirect(url);

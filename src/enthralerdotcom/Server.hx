@@ -51,6 +51,8 @@ class Server {
 	static function getInjector(db: Db) {
 		return Injector.create('enthralerdotcom', [
 			var _:Db = db,
+			var siteUrl:String = #if debug 'http://localhost:8080/' #else 'https://enthraler.com/' #end,
+			var jsLibBaseUrl:String = 'https://cdn.rawgit.com/enthraler/enthraler/0.1.0/bin',
 		]);
 	}
 
@@ -124,9 +126,6 @@ class Root {
 	public function new(injector) {
 		this.injector = injector;
 	}
-
-	@:sub('/jslib/v1/')
-	public function jsLib() return new enthralerdotcom.jslib.Routes();
 
 	@:sub('/templates')
 	public function templates() return new enthralerdotcom.templates.Routes(injector);
