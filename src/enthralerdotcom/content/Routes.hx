@@ -5,6 +5,7 @@ import dodrugs.Injector;
 import enthralerdotcom.content.ContentEditorPage;
 import enthralerdotcom.content.ContentViewerPage;
 import enthralerdotcom.templates.TemplateVersion;
+import enthralerdotcom.types.Url;
 import enthralerdotcom.Db;
 import tink.http.Response;
 import tink.http.Header;
@@ -14,14 +15,14 @@ using tink.CoreApi;
 class Routes {
 	var injector: Injector<"enthralerdotcom">;
 	var db: Db;
-	var siteUrl: String;
-	var jsLibBaseUrl: String;
+	var siteUrl: Url;
+	var jsLibBaseUrl: Url;
 
 	public function new(injector) {
 		this.injector = injector;
 		this.db = injector.get(Db);
-		this.siteUrl = injector.get(var siteUrl: String);
-		this.jsLibBaseUrl = injector.get(var jsLibBaseUrl: String);
+		this.siteUrl = injector.get(var siteUrl: Url);
+		this.jsLibBaseUrl = injector.get(var jsLibBaseUrl: Url);
 	}
 
 	@:all('/new/$templateId')
@@ -40,17 +41,16 @@ class Routes {
 			.where(TemplateVersion.templateId == templateId)
 			.first(TemplateVersionUtil.orderBySemver(db))
 			.next(function (row) {
-				var baseUrl = 'https://cdn.rawgit.com/enthraler/enthraler/0.1.0/bin',
-					contentUrl = siteUrl + 'i/new/${templateId}/embed/blank.json',
+				var contentUrl = siteUrl + 'i/new/${templateId}/embed/blank.json',
 					templateUrl = row.mainUrl,
-					url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
+					url = '$jsLibBaseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
 				return doHttpRedirect(url);
 			});
 	}
 
 	@:get('/new/$templateId/embed/blank.json')
 	public function newEmbedJson(templateId: Int) {
-		return {};
+		return jsonResponseWithCors("{}");
 	}
 
 	@:all('/$guid/edit')
@@ -70,10 +70,7 @@ class Routes {
 			if (row == null) {
 				return new Error(404, 'Content version not found');
 			}
-			return new OutgoingResponse(
-				header(200, 'application/json'),
-				row.ContentVersion.jsonContent
-			);
+			return jsonResponseWithCors(row.ContentVersion.jsonContent);
 		});
 	}
 
@@ -81,10 +78,9 @@ class Routes {
 	@:get('/$guid/embed/$id')
 	public function getEmbedFrame(guid: String, ?id: Int): Promise<OutgoingResponse> {
 		return this.getVersion(guid, id).next(function (row) {
-			var baseUrl = jsLibBaseUrl,
-				contentUrl = siteUrl + 'i/${row.Content.guid}/data/${id != null ? '$id/' : ""}',
+			var contentUrl = siteUrl + 'i/${row.Content.guid}/data/${id != null ? '$id/' : ""}',
 				templateUrl = row.TemplateVersion.mainUrl,
-				url = '$baseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
+				url = '$jsLibBaseUrl/frame.html#?template=$templateUrl&authorData=$contentUrl';
 			return doHttpRedirect(url);
 		});
 	}
@@ -97,6 +93,16 @@ class Routes {
 				guid
 			]);
 		}, context);
+	}
+
+	function jsonResponseWithCors(jsonContent: String): OutgoingResponse {
+		return new OutgoingResponse(
+			new ResponseHeader(200, 200, [
+				new HeaderField('Content-Type', 'application/json'),
+				new HeaderField('Access-Control-Allow-Origin', jsLibBaseUrl.origin)
+			]),
+			jsonContent
+		);
 	}
 
 	function getVersion(guid:String, id:Null<Int>) {

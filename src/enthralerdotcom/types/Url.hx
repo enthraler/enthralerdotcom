@@ -10,6 +10,9 @@ abstract Url(VarChar<255>) from String to String {
 	/** The hostname. eg `enthraler.com` **/
 	public var hostname(get, never): String;
 
+	/** The port, if explicitly specified. eg `80` **/
+	public var port(get, never): Null<Int>;
+
 	/** The URI path, including the leading slash, not including query or hash. eg `/api/oembed` **/
 	public var uri(get, never): String;
 
@@ -19,13 +22,32 @@ abstract Url(VarChar<255>) from String to String {
 	/** The hash, not including the `#`. eg `main-content`. **/
 	public var hash(get, never): String;
 
+	/** The http origin - including protocol, domain and port. eg `https://enthraler.com:443`. **/
+	public var origin(get, never): String;
+
 	public function new(url:String) {
 		this = url;
 	}
 
 	inline function get_protocol() return this.split("://")[0];
 
-	inline function get_hostname() return this.split("://")[1].split("/")[0];
+	inline function get_hostAndPort() return this.split("://")[1].split("/")[0];
+
+	function get_hostname() {
+		var hostAndPort = get_hostAndPort();
+		if (hostAndPort.indexOf(':') > -1) {
+			return hostAndPort.split(':')[0];
+		}
+		return hostAndPort;
+	}
+
+	function get_port(): Null<Int> {
+		var hostAndPort = get_hostAndPort();
+		if (hostAndPort.indexOf(':') > -1) {
+			return Std.parseInt(hostAndPort.split(':')[1]);
+		}
+		return null;
+	}
 
 	function get_uri() {
 		var afterProtocol = this.split("://")[1];
@@ -59,5 +81,9 @@ abstract Url(VarChar<255>) from String to String {
 			return '';
 		}
 		return afterProtocol.substring(startOfHash + 1);
+	}
+
+	function get_origin() {
+		return '$protocol://${get_hostAndPort()}';
 	}
 }

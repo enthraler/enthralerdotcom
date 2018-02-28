@@ -211,11 +211,11 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		if (state.validationResult != null) {
 			return;
 		}
-		js.Browser.window.console.log('location',  js.Browser.window.location.origin);
+		var targetOrigin = Constants.jsLibBaseUrl.origin;
 		preview.contentWindow.postMessage(Json.stringify({
 			src: '' + js.Browser.window.location,
 			context: EnthralerMessages.receiveAuthorData,
 			authorData: this.state.contentData
-		}), 'https://cdn.rawgit.com');
+		}), targetOrigin);
 	}
 }
