@@ -123,7 +123,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 				</div>
 			</div>
 			<div className="columns">
-				<div className="column">
+				<div className="column editor">
 					<CodeMirrorEditor content=${this.props.currentVersion.jsonContent} onChange=${onEditorChange}></CodeMirrorEditor>
 				</div>
 				<div className="column">
