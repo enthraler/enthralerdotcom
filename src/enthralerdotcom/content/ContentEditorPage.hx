@@ -10,13 +10,14 @@ import enthraler.proptypes.PropTypes;
 import enthraler.EnthralerMessages;
 import haxe.Json;
 import haxe.Http;
+import enthralerdotcom.util.Merge;
 #if client
 import enthralerdotcom.services.client.ErrorNotificationService;
 #end
 
 enum ContentEditorAction {
-	SaveFirstAnonymousVersion(authorGuid: String, newContent: String, templateId: Int, templateVersionId: Int, draft: Bool);
-	SaveAnonymousVersion(contentId:Int, authorGuid:String, newContent:String, templateVersionId:Int, draft:Bool);
+	SaveFirstAnonymousVersion(authorGuid: String, newContent: String, newTitle: String, templateId: Int, templateVersionId: Int, draft: Bool);
+	SaveAnonymousVersion(contentId:Int, authorGuid:String, newContent:String, newTitle: String, templateVersionId:Int, draft:Bool);
 }
 
 typedef ContentEditorProps = {
@@ -42,6 +43,7 @@ typedef ContentEditorProps = {
 
 typedef ContentEditorState = {
 	contentJson:String,
+	contentTitle: String,
 	contentData:Any,
 	validationResult:Null<Array<ValidationError>>,
 	schema:PropTypes
@@ -76,6 +78,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 	override public function componentDidMount() {
 		this.setState({
 			contentJson: this.props.currentVersion.jsonContent,
+			contentTitle: this.props.content.title,
 			contentData: null,
 			validationResult: null,
 			schema: null
@@ -84,12 +87,9 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		loadFromUrl(this.props.template.schemaUrl)
 			.next(function (schemaJson) {
 				var schema = PropTypes.fromObject(Json.parse(schemaJson));
-				this.setState({
-					contentJson: this.state.contentJson,
-					contentData: this.state.contentData,
-					validationResult: this.state.validationResult,
-					schema: schema
-				});
+				this.setState(Merge.object(this.state, {
+					schema: schema,
+				}));
 				return schema;
 			})
 			.recover(function (err:Error):PropTypes {
@@ -110,9 +110,11 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			maxWidth: '100%',
 			height: '350px'
 		};
+		var contentTitle = (this.state != null) ? this.state.contentTitle : this.props.content.title;
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
-			<h1 className="title">${props.content.title}</h1>
+			<h1 className="title"><label for="content-title">Title:</label></h1>
+			<input id="content-title" defaultValue=${contentTitle} onChange=${onTitleChange} onKeyUp=${onTitleChange} className="title" />
 			<h2 className="subtitle">Using template <a href=${"/templates/github/"+props.template.name}><em>${props.template.name}</em></a></h2>
 			<div className="field is-grouped">
 				<div className="control">
@@ -174,8 +176,8 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			return;
 		}
 		var action = props.content.id != null
-			? SaveAnonymousVersion(props.content.id, getUserGuid(), state.contentJson, props.template.versionId, draft)
-			: SaveFirstAnonymousVersion(getUserGuid(), state.contentJson, props.template.id, props.template.versionId, draft);
+			? SaveAnonymousVersion(props.content.id, getUserGuid(), state.contentJson, state.contentTitle, props.template.versionId, draft)
+			: SaveFirstAnonymousVersion(getUserGuid(), state.contentJson, state.contentTitle, props.template.id, props.template.versionId, draft);
 		this.trigger(action).handle(function (outcome) switch outcome {
 			case Failure(err):
 				ErrorNotificationService.inst.logError(err, onSave.bind(draft), 'Try Again');
@@ -198,12 +200,19 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		} catch (e:Dynamic) {
 			validationResult = [new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))];
 		}
-		this.setState({
+		this.setState(Merge.object(this.state, {
 			contentJson: newJson,
 			contentData: authorData,
 			validationResult: validationResult,
-			schema: this.state.schema
-		});
+		}));
+	}
+
+	@:client
+	function onTitleChange(e:react.ReactEvent) {
+		var target = cast (e.target, js.html.InputElement);
+		this.setState(Merge.object(this.state, {
+			contentTitle: target.value
+		}));
 	}
 
 	@:client

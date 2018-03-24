@@ -108,10 +108,8 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 
 	public function processAction(context:SmallUniverseContext, action:ContentEditorAction):Promise<BackendApiResult> {
 		var ipAddress = new IpAddress(@:privateAccess context.request.clientIp);
-		var newTitle = 'Untitled Enthraler';
-		trace('process action', action);
 		switch action {
-			case SaveFirstAnonymousVersion(authorGuid, newContent, templateId, templateVersionId, draft):
+			case SaveFirstAnonymousVersion(authorGuid, newContent, newTitle, templateId, templateVersionId, draft):
 				trace('save first');
 				var content: Content = {
 					id: null,
@@ -130,7 +128,7 @@ class ContentEditorBackendApi implements BackendApi<ContentEditorAction, Content
 					.next(function (result) {
 						return BackendApiResult.Redirect('/i/${content.guid}/edit/');
 					});
-			case SaveAnonymousVersion(contentId, authorGuid, newContent, templateVersionId, draft):
+			case SaveAnonymousVersion(contentId, authorGuid, newContent, newTitle, templateVersionId, draft):
 				return saveAnonymousContentVersion(contentId, new UserGuid(authorGuid), ipAddress, newTitle, newContent, templateVersionId, draft);
 		}
 	}
