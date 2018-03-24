@@ -15,7 +15,7 @@ using tink.CoreApi;
 
 class Server {
 	static function main() {
-		captureTraces();
+		SmallUniverse.captureTraces();
 		var cnxSettings = {
 			host: Sys.getEnv('DB_HOST'),
 			database: Sys.getEnv('DB_DATABASE'),
@@ -55,23 +55,6 @@ class Server {
 			var siteUrl:Url = Constants.siteUrl,
 			var jsLibBaseUrl:Url = Constants.jsLibBaseUrl,
 		]);
-	}
-
-	static function captureTraces() {
-		SmallUniverse.captureTraces();
-		var suTrace = haxe.Log.trace;
-		haxe.Log.trace = function (v: Dynamic, ?infos: haxe.PosInfos) {
-			suTrace(v, infos);
-			// Also print to the Node JS console
-			var className = infos.className.substr(infos.className.lastIndexOf('.') + 1),
-				params = [v],
-				resetColor = "\x1b[0m",
-				dimColor = "\x1b[2m";
-			if (infos.customParams != null) {
-				for (p in infos.customParams) params.push(p);
-			}
-			js.Node.console.log('${dimColor}${className}.${infos.methodName}():${infos.lineNumber}:${resetColor} ${params.join(" ")}');
-		};
 	}
 
 	static function webMain(cnx) {
