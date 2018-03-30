@@ -101,6 +101,9 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	override function render() {
 		this.head.setTitle('Content Editor');
+		if (this.state == null) {
+			return jsx('<div>Loading</div>');
+		}
 		var iframeSrc = (props.currentVersion.versionId != null)
 			? '/i/${props.content.guid}/embed/${props.currentVersion.versionId}'
 			: '/i/new/${props.template.id}/embed/';
@@ -110,7 +113,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			maxWidth: '100%',
 			height: '350px'
 		};
-		var contentTitle = (this.state != null) ? this.state.contentTitle : this.props.content.title;
+		var contentTitle = this.state.contentTitle;
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
 			<h1 className="title"><label for="content-title">Title:</label></h1>
@@ -126,7 +129,8 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			</div>
 			<div className="columns">
 				<div className="column editor">
-					<CodeMirrorEditor content=${this.props.currentVersion.jsonContent} onChange=${onEditorChange}></CodeMirrorEditor>
+					<ContentEditorForm content=${state.contentData} onChange=${onFormChange} schema=${state.schema} />
+					<CodeMirrorEditor content=${props.currentVersion.jsonContent} onChange=${onEditorChange}></CodeMirrorEditor>
 				</div>
 				<div className="column">
 					${renderErrorList()}
@@ -187,18 +191,32 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	@:client
 	function onEditorChange(newJson:String) {
-		var validationResult,
-			authorData = null;
+		var authorData = null;
 
 		try {
 			authorData = Json.parse(newJson);
-			if (this.state.schema != null) {
-				validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');
-			} else {
-				validationResult = null;
-			}
 		} catch (e:Dynamic) {
-			validationResult = [new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))];
+			this.setState(Merge.object(this.state, {
+				validationResult: [
+					new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))
+				],
+			}));
+		}
+		if (authorData != null) {
+			onNewContent(authorData, newJson);
+		}
+	}
+
+	@:client
+	function onFormChange(authorData) {
+		onNewContent(authorData, Json.stringify(authorData));
+	}
+
+	@:client
+	function onNewContent(authorData, newJson) {
+		var validationResult = null;
+		if (this.state.schema != null) {
+			validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');
 		}
 		this.setState(Merge.object(this.state, {
 			contentJson: newJson,
