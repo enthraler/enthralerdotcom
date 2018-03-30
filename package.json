@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "webpack-dev-server --open",
-    "webpack": "node node_modules/webpack/bin/webpack.js",
+    "webpack": "NODE_ENV=production webpack",
     "watch": "node node_modules/webpack/bin/webpack.js --watch",
     "docker": "docker-compose up",
     "docker_migrate": "docker-compose run --rm node node server.js --migrate",
@@ -31,9 +31,12 @@
     "css-loader": "^0.26.1",
     "extract-text-webpack-plugin": "^2.1.2",
     "haxe-loader": "^0.7.1",
+    "haxeshim": "^0.12.2",
+    "lix.pm": "^0.14.0",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.5",
     "style-loader": "^0.13.1",
+    "switchx": "^0.14.6",
     "webpack": "^3.0.0",
     "webpack-dev-server": "^2.5.0"
   }

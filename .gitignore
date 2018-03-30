@@ -4,6 +4,7 @@ bin/*.js
 bin/*.js.map
 bin/assets/*.js
 bin/assets/*.css
+bin/assets/*.map
 bin/*.php
 bin/lib
 bin/res

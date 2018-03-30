@@ -10,11 +10,12 @@ import tink.http.Handler;
 import tink.web.routing.*;
 import tink.http.middleware.Static;
 import tink.http.Response.OutgoingResponse;
+import enthralerdotcom.types.Url;
 using tink.CoreApi;
 
 class Server {
 	static function main() {
-		captureTraces();
+		SmallUniverse.captureTraces();
 		var cnxSettings = {
 			host: Sys.getEnv('DB_HOST'),
 			database: Sys.getEnv('DB_DATABASE'),
@@ -51,24 +52,9 @@ class Server {
 	static function getInjector(db: Db) {
 		return Injector.create('enthralerdotcom', [
 			var _:Db = db,
+			var siteUrl:Url = Constants.siteUrl,
+			var jsLibBaseUrl:Url = Constants.jsLibBaseUrl,
 		]);
-	}
-
-	static function captureTraces() {
-		SmallUniverse.captureTraces();
-		var suTrace = haxe.Log.trace;
-		haxe.Log.trace = function (v: Dynamic, ?infos: haxe.PosInfos) {
-			suTrace(v, infos);
-			// Also print to the Node JS console
-			var className = infos.className.substr(infos.className.lastIndexOf('.') + 1),
-				params = [v],
-				resetColor = "\x1b[0m",
-				dimColor = "\x1b[2m";
-			if (infos.customParams != null) {
-				for (p in infos.customParams) params.push(p);
-			}
-			js.Node.console.log('${dimColor}${className}.${infos.methodName}():${infos.lineNumber}:${resetColor} ${params.join(" ")}');
-		};
 	}
 
 	static function webMain(cnx) {
@@ -84,7 +70,7 @@ class Server {
 			.handle(function (status) {
 				switch status {
 					case Running(arg1):
-						trace('Running: Listening on port 8080');
+						trace('Running: Listening on port 3000');
 					case Failed(err):
 						trace('Error starting server: $err');
 					case Shutdown:
@@ -125,14 +111,14 @@ class Root {
 		this.injector = injector;
 	}
 
-	@:sub('/jslib/v1/')
-	public function jsLib() return new enthralerdotcom.jslib.Routes();
-
 	@:sub('/templates')
 	public function templates() return new enthralerdotcom.templates.Routes(injector);
 
 	@:sub('/i')
 	public function content() return new enthralerdotcom.content.Routes(injector);
+
+	@:sub('/api')
+	public function api() return new enthralerdotcom.api.Routes(injector);
 
 	@:all('/')
 	public function homepage(context: Context) {

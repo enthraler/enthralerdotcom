@@ -38,6 +38,10 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 		Head.prepareHead(this.head);
 	}
 
+	override public function componentWillMount() {
+		Head.addOEmbedCodes(this.head, this.props.guid);
+	}
+
 	@:client
 	override public function componentDidMount() {
 		EnthralerHost.addMessageListeners();
