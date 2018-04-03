@@ -5,6 +5,7 @@ import enthralerdotcom.content.ContentViewerPage;
 import enthralerdotcom.content.Content;
 import enthralerdotcom.templates.*;
 import enthralerdotcom.Db;
+import enthralerdotcom.Constants;
 import tink.sql.OrderBy;
 using tink.CoreApi;
 
@@ -36,8 +37,7 @@ class ContentViewerBackendApi implements BackendApi<ContentViewerAction, Content
 				if (result == null) {
 					return new Error(404, 'Content not found');
 				}
-				var embedUrl = 'https://enthraler.com/i/${this.guid}/embed';
-				var embedCode = '<iframe src="${embedUrl}" className="enthraler-embed" frameBorder="0"></iframe>';
+				var embedUrl = '${Constants.siteUrl}i/${this.guid}/embed';
 				var props:ContentViewerProps = {
 					contentVersionId: result.ContentVersion.id,
 					templateName: result.Template.name,
@@ -46,7 +46,7 @@ class ContentViewerBackendApi implements BackendApi<ContentViewerAction, Content
 					title: result.ContentVersion.title,
 					published: result.ContentVersion.published,
 					guid: result.Content.guid,
-					embedCode: embedCode
+					embedUrl: embedUrl,
 				};
 				return props;
 			});

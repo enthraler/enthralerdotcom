@@ -10,8 +10,12 @@ import enthraler.proptypes.PropTypes;
 import enthraler.EnthralerMessages;
 import haxe.Json;
 import haxe.Http;
+import enthralerdotcom.util.Merge;
 #if client
 import enthralerdotcom.services.client.ErrorNotificationService;
+import js.html.*;
+import js.Browser.window;
+import js.Browser.document;
 #end
 
 enum ContentViewerAction {
@@ -26,25 +30,65 @@ typedef ContentViewerProps = {
 	title:String,
 	published:Date,
 	guid:String,
-	embedCode:String,
+	embedUrl:String,
 }
 
-typedef ContentViewerState = {}
+typedef ContentViewerState = {
+	iframeWidth: Int,
+	iframeHeight: Int,
+}
 
 class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewerProps, ContentViewerState> {
+
+	@:client var iframe: IFrameElement;
 
 	public function new(api:ContentViewerBackendApi) {
 		super(api);
 		Head.prepareHead(this.head);
+		this.state = {
+			iframeWidth: 800,
+			iframeHeight: 350,
+		}
 	}
 
 	override public function componentWillMount() {
 		Head.addOEmbedCodes(this.head, this.props.guid);
+		#if client
+		EnthralerHost.addMessageListeners();
+		#end
 	}
 
 	@:client
 	override public function componentDidMount() {
-		EnthralerHost.addMessageListeners();
+		updateHeightOfEmbedCode();
+		// We're hackily assuming any message posted from the iframe is likely changing the height.
+		window.addEventListener('message', function (e:MessageEvent) {
+			updateHeightOfEmbedCode();
+		});
+	}
+
+	@:client
+	function updateHeightOfEmbedCode() {
+		var iframe = document.querySelector('.enthraler-embed');
+		if (iframe != null) {
+			// Wait 100ms for the height to update, then update our embed code.
+			js.Browser.window.setTimeout(function () {
+				var computedStyle = window.getComputedStyle(iframe);
+				trace('New height', computedStyle.height);
+				this.setState({
+					iframeWidth: Std.parseInt(computedStyle.width),
+					iframeHeight: Std.parseInt(computedStyle.height),
+				});
+			}, 100);
+		}
+	}
+
+	@:client
+	function updatePreferredWidth(e:react.ReactEvent) {
+		var target = cast (e.target, js.html.InputElement);
+		this.setState(Merge.object(this.state, {
+			iframeWidth: Std.parseInt(target.value)
+		}));
 	}
 
 	override function render() {
@@ -54,21 +98,35 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 			: 'about:blank';
 		var iframeStyle = {
 			display: 'block',
-			width: '100%',
+			width: state.iframeWidth + 'px',
 			maxWidth: '100%',
-			height: '350px'
+			height: state.iframeHeight + 'px'
+		};
+		var embedCode = getEmbedCode(iframeStyle);
+		var embed = {
+			__html: embedCode
 		};
 		return jsx('<div className="container is-fluid">
 			<HeaderNav></HeaderNav>
 			<h1 className="title">${props.title}</h1>
 			<h2 className="subtitle">Published ${props.published.toString()} using the <a href=${"/templates/github/"+props.templateName}><em>${props.templateName} template.</em></a></h2>
-			<h2 className="subtitle"></h2>
-			<iframe src=${iframeSrc} id="preview" className="enthraler-embed" frameBorder="0" style=${iframeStyle}></iframe>
-			<div class="field">
-				<p class="control has-icons-left">
-					<textarea class="textarea" placeholder="Loading textarea">${props.embedCode}</textarea>
+			<div id="preview" dangerouslySetInnerHTML=${embed}></div>
+			<div className="field">
+				<label htmlFor="embed-code">Embed code:</label>
+				<p className="control has-icons-left">
+					<textarea id="embed-code" className="textarea" readonly="readonly" placeholder="Loading textarea" value=${embedCode}></textarea>
+				</p>
+			</div>
+			<div className="field">
+				<label htmlFor="embed-width">Preferred width:</label>
+				<p className="control has-icons-left">
+					<input type="number" min="0" max="10000" id="embed-width" defaultValue=${state.iframeWidth} onChange=${updatePreferredWidth} />
 				</p>
 			</div>
 		</div>');
+	}
+
+	function getEmbedCode(style) {
+		return '<iframe src="${props.embedUrl}" class="enthraler-embed" frameBorder="0" style="display: ${style.display}; width: ${style.width}; maxWidth: ${style.maxWidth}; height: ${style.height};"></iframe>';
 	}
 }
