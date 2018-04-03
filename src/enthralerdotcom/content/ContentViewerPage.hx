@@ -74,11 +74,9 @@ class ContentViewerPage extends UniversalPage<ContentViewerAction, ContentViewer
 			// Wait 100ms for the height to update, then update our embed code.
 			js.Browser.window.setTimeout(function () {
 				var computedStyle = window.getComputedStyle(iframe);
-				trace('New height', computedStyle.height);
-				this.setState({
-					iframeWidth: Std.parseInt(computedStyle.width),
+				this.setState(Merge.object(this.state, {
 					iframeHeight: Std.parseInt(computedStyle.height),
-				});
+				}));
 			}, 100);
 		}
 	}
