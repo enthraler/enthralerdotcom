@@ -8,6 +8,7 @@ import js.Browser.document;
 import enthralerdotcom.templates.ManageTemplatesPage;
 import enthralerdotcom.templates.ViewTemplatePage;
 import enthralerdotcom.content.ContentEditorPage;
+import enthralerdotcom.content.ContentViewerPage;
 
 class Client {
 	public static function main() {
@@ -30,7 +31,13 @@ class Client {
 					Webpack.load(ContentEditorPage).then(function () {
 						SmallUniverse.hydrate(ContentEditorPage);
 					});
-				default: null;
+				case 'enthralerdotcom.content.ContentViewerPage':
+					Webpack.load(ContentViewerPage).then(function () {
+						SmallUniverse.hydrate(ContentViewerPage);
+					});
+				default:
+					trace('No JS is registered for this page', propsElem.getAttribute('data-page'));
+					null;
 			}
 		});
 	}
