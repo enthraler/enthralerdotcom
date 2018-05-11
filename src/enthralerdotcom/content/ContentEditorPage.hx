@@ -67,9 +67,15 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		return Future.async(function (handler:Outcome<String,Error>->Void) {
 			var h = new haxe.Http(url);
 			var status = null;
-			h.onStatus = function (s) status = s;
-			h.onData = function (result) handler(Success(result));
-			h.onError = function (errMessage) handler(Failure(new Error(status, errMessage)));
+			h.onStatus = function (s) {
+				status = s;
+			}
+			h.onData = function (result) {
+				handler(Success(result));
+			}
+			h.onError = function (errMessage) {
+				handler(Failure(new Error(status, errMessage)));
+			}
 			h.request(false);
 		});
 	}
@@ -79,7 +85,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		this.setState({
 			contentJson: this.props.currentVersion.jsonContent,
 			contentTitle: this.props.content.title,
-			contentData: null,
+			contentData: Json.parse(this.props.currentVersion.jsonContent),
 			validationResult: null,
 			schema: null
 		});
@@ -130,7 +136,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			<div className="columns">
 				<div className="column editor">
 					<ContentEditorForm content=${state.contentData} onChange=${onFormChange} schema=${state.schema} />
-					<CodeMirrorEditor content=${props.currentVersion.jsonContent} onChange=${onEditorChange}></CodeMirrorEditor>
+					<CodeMirrorEditor content=${state.contentJson} onChange=${onEditorChange}></CodeMirrorEditor>
 				</div>
 				<div className="column">
 					${renderErrorList()}
@@ -209,7 +215,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	@:client
 	function onFormChange(authorData) {
-		onNewContent(authorData, Json.stringify(authorData));
+		onNewContent(authorData, Json.stringify(authorData, null, "\t"));
 	}
 
 	@:client
