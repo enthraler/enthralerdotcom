@@ -187,18 +187,17 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	@:client
 	function onEditorChange(newJson:String) {
-		var validationResult,
+		var validationResult = null,
 			authorData = null;
 
 		try {
 			authorData = Json.parse(newJson);
-			if (this.state.schema != null) {
-				validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');
-			} else {
-				validationResult = null;
-			}
 		} catch (e:Dynamic) {
+			js.Browser.console.error(e);
 			validationResult = [new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))];
+		}
+		if (this.state.schema != null && validationResult == null) {
+			validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');
 		}
 		this.setState(Merge.object(this.state, {
 			contentJson: newJson,
