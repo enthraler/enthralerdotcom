@@ -116,7 +116,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		var contentTitle = this.state.contentTitle;
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
-			<h1 className="title"><label for="content-title">Title:</label></h1>
+			<h1 className="title"><label htmlFor="content-title">Title:</label></h1>
 			<input id="content-title" defaultValue=${contentTitle} onChange=${onTitleChange} onKeyUp=${onTitleChange} className="title" />
 			<h2 className="subtitle">Using template <a href=${"/templates/github/"+props.template.name}><em>${props.template.name}</em></a></h2>
 			<div className="field is-grouped">
