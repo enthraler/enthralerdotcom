@@ -35,12 +35,12 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			case PTBool(optional): jsx('<Checkbox value=${value} onChange=${onChange} />');
 			case PTNumber(optional): jsx('<IntInput value=${value} onChange=${onChange} />');
 			case PTInteger(optional): jsx('<FloatInput value=${value} onChange=${onChange} />');
-			case PTObject(optional): jsx('<textarea></textarea>');
+			case PTObject(optional): jsx('<ObjectForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
 			case PTString(optional): jsx('<TextInput value=${value} onChange=${onChange}></TextInput>');
 			case PTOneOf(values, optional): jsx('<SelectInput options=${values} value=${value} onChange=${onChange}></SelectInput>');
 			case PTOneOfType(types, optional): jsx('<span>TODO: one of type...</span>');
 			case PTArrayOf(subType, optional): jsx('<ArrayForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
-			case PTObjectOf(subType, optional): jsx('<span>TODO: Object (multiple inputs)</span>');
+			case PTObjectOf(subType, optional): jsx('<ObjectForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
 			case PTShape(shapedObject, optional): jsx('<ShapeForm name=${name} shape=${shapedObject} value=${value} onChange=${onChange} />');
 			case PTAny(optional): jsx('<textarea></textarea>');
 		};
@@ -160,6 +160,48 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 		function addItem() {
 			array.push(getDefaultValue(subType));
 			props.onChange(array);
+		}
+		return jsx('<div>
+			<fieldset>
+				<legend>${props.name}</legend>
+				${fields}
+				<button onClick=${addItem}>Add</button>
+			</fieldset>
+		</div>');
+	}
+
+	static function ObjectForm(props: {name: String, subType: PropTypeEnum, value: Dynamic<Dynamic>, onChange: Dynamic<Dynamic>->Void}) {
+		var object = props.value;
+		var subType = props.subType;
+		if (object == null) {
+			object = {};
+		}
+		var fields = [for (key in Reflect.fields(object)) {
+			var itemValue = Reflect.field(object, key);
+			function onChangeValue(newItemValue: Dynamic) {
+				Reflect.setField(object, key, newItemValue);
+				props.onChange(object);
+			}
+			function onChangeName(e) {
+				var newItemName = e.target.value;
+				Reflect.deleteField(object, key);
+				Reflect.setField(object, newItemName, itemValue);
+				props.onChange(object);
+			}
+			function delete() {
+				Reflect.deleteField(object, key);
+				props.onChange(object);
+			}
+			var field = renderField(key, subType, itemValue, onChangeValue);
+			jsx('<div>
+				<input type="text" onChange=${onChangeName} value=${key} />
+				${field}
+				<button onClick=${delete}>Delete</button>
+			</div>');
+		}];
+		function addItem() {
+			Reflect.setField(object, '', '');
+			props.onChange(object);
 		}
 		return jsx('<div>
 			<fieldset>
