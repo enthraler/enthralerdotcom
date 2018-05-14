@@ -31,7 +31,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 
 	static function renderField(name: String, type: PropTypeEnum, value: Dynamic, onChange: Dynamic->Void) {
 		var input = switch type {
-			case PTArray(optional): jsx('<span>Array (multiple inputs)</span>');
+			case PTArray(optional): jsx('<ArrayForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
 			case PTBool(optional): jsx('<Checkbox value=${value} onChange=${onChange} />');
 			case PTNumber(optional): jsx('<IntInput value=${value} onChange=${onChange} />');
 			case PTInteger(optional): jsx('<FloatInput value=${value} onChange=${onChange} />');
@@ -39,12 +39,35 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			case PTString(optional): jsx('<TextInput value=${value} onChange=${onChange}></TextInput>');
 			case PTOneOf(values, optional): jsx('<SelectInput options=${values} value=${value} onChange=${onChange}></SelectInput>');
 			case PTOneOfType(types, optional): jsx('<span>TODO: one of type...</span>');
-			case PTArrayOf(subType, optional): jsx('<span>TODO: Array (multiple inputs)</span>');
+			case PTArrayOf(subType, optional): jsx('<ArrayForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
 			case PTObjectOf(subType, optional): jsx('<span>TODO: Object (multiple inputs)</span>');
 			case PTShape(shapedObject, optional): jsx('<ShapeForm name=${name} shape=${shapedObject} value=${value} onChange=${onChange} />');
 			case PTAny(optional): jsx('<textarea></textarea>');
 		};
 		return jsx('<div key=${name}><label>${name}: ${input}</label></div>');
+	}
+
+	static function getDefaultValue(type: PropTypeEnum): Dynamic {
+		return switch type {
+			case PTArray(optional): [];
+			case PTBool(optional): false;
+			case PTNumber(optional): 0.0;
+			case PTInteger(optional): 0;
+			case PTObject(optional): {};
+			case PTString(optional): '';
+			case PTOneOf(values, optional): values[0];
+			case PTOneOfType(types, optional): getDefaultValue(types[0]);
+			case PTArrayOf(subType, optional): [getDefaultValue(subType)];
+			case PTObjectOf(subType, optional): {};
+			case PTShape(shapedObject, optional):
+				var obj = {};
+				for (name in Reflect.fields(shapedObject)) {
+					var type = Reflect.field(shapedObject, name);
+					Reflect.setField(obj, name, getDefaultValue(type));
+				}
+				obj;
+			case PTAny(optional): '';
+		};
 	}
 
 	static function TextInput(props: {value: String, onChange: String->Void}) {
@@ -87,8 +110,62 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			renderField(name, type, fieldValue, onChange);
 		}];
 		return jsx('<div>
-			<fieldset name=${props.name}>
+			<fieldset>
+				<legend>${props.name}</legend>
 				${fields}
+			</fieldset>
+		</div>');
+	}
+
+	static function ArrayForm(props: {name: String, subType: PropTypeEnum, value: Array<Dynamic>, onChange: Array<Dynamic>->Void}) {
+		var array = props.value;
+		var subType = props.subType;
+		if (array == null) {
+			array = [];
+		}
+		var fields = [for (i in 0...array.length) {
+			var itemValue = array[i];
+			function onChange(newItemValue: Dynamic) {
+				array[i] = newItemValue;
+				props.onChange(array);
+			}
+			function delete() {
+				array.splice(i, 1);
+				props.onChange(array);
+			}
+			function moveUp() {
+				if (i == 0) return;
+
+				var currentElement = array[i];
+				array.splice(i, 1);
+				array.insert(i - 1, currentElement);
+				props.onChange(array);
+			}
+			function moveDown() {
+				if (i >= array.length) return;
+
+				var currentElement = array[i];
+				array.splice(i, 1);
+				array.insert(i + 1, currentElement);
+				props.onChange(array);
+			}
+			var field = renderField('Item $i', subType, itemValue, onChange);
+			jsx('<div>
+				${field}
+				<button onClick=${moveUp}>Move up</button>
+				<button onClick=${moveDown}>Move down</button>
+				<button onClick=${delete}>Delete</button>
+			</div>');
+		}];
+		function addItem() {
+			array.push(getDefaultValue(subType));
+			props.onChange(array);
+		}
+		return jsx('<div>
+			<fieldset>
+				<legend>${props.name}</legend>
+				${fields}
+				<button onClick=${addItem}>Add</button>
 			</fieldset>
 		</div>');
 	}
