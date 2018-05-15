@@ -29,7 +29,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 		</div>');
 	}
 
-	static function renderField(name: String, type: PropTypeEnum, value: Dynamic, onChange: Dynamic->Void) {
+	public static function renderField(name: String, type: PropTypeEnum, value: Dynamic, onChange: Dynamic->Void) {
 		var input = switch type {
 			case PTArray(optional): jsx('<ArrayForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
 			case PTBool(optional): jsx('<Checkbox value=${value} onChange=${onChange} />');
@@ -38,11 +38,18 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			case PTObject(optional): jsx('<ObjectForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
 			case PTString(optional): jsx('<TextInput value=${value} onChange=${onChange}></TextInput>');
 			case PTOneOf(values, optional): jsx('<SelectInput options=${values} value=${value} onChange=${onChange}></SelectInput>');
-			case PTOneOfType(types, optional): jsx('<span>TODO: one of type...</span>');
+			case PTOneOfType(types, optional): jsx('<OneOfTypeForm name=${name} types=${types} value=${value} onChange=${onChange} />');
 			case PTArrayOf(subType, optional): jsx('<ArrayForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
 			case PTObjectOf(subType, optional): jsx('<ObjectForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
 			case PTShape(shapedObject, optional): jsx('<ShapeForm name=${name} shape=${shapedObject} value=${value} onChange=${onChange} />');
-			case PTAny(optional): jsx('<textarea></textarea>');
+			case PTAny(optional): jsx('<OneOfTypeForm name=${name} types=${[
+				PTString(true),
+				PTNumber(true),
+				PTInteger(true),
+				PTBool(true),
+				PTArray(true),
+				PTObject(true),
+			]} value=${value} onChange=${onChange} />');
 		};
 		return jsx('<div key=${name}><label>${name}: ${input}</label></div>');
 	}
@@ -120,7 +127,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 	static function ArrayForm(props: {name: String, subType: PropTypeEnum, value: Array<Dynamic>, onChange: Array<Dynamic>->Void}) {
 		var array = props.value;
 		var subType = props.subType;
-		if (array == null) {
+		if (array == null || !Type.typeof(array).match(TClass(Array))) {
 			array = [];
 		}
 		var fields = [for (i in 0...array.length) {
@@ -173,7 +180,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 	static function ObjectForm(props: {name: String, subType: PropTypeEnum, value: Dynamic<Dynamic>, onChange: Dynamic<Dynamic>->Void}) {
 		var object = props.value;
 		var subType = props.subType;
-		if (object == null) {
+		if (object == null || !Type.typeof(object).match(TObject)) {
 			object = {};
 		}
 		var fields = [for (key in Reflect.fields(object)) {
@@ -210,5 +217,102 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 				<button onClick=${addItem}>Add</button>
 			</fieldset>
 		</div>');
+	}
+}
+
+class OneOfTypeForm extends UniversalComponent<{
+	name: String,
+	types: Array<PropTypeEnum>,
+	value: Dynamic,
+	onChange: Dynamic->Void
+}, {
+	selectedType: PropTypeEnum
+}> {
+	public function new(props) {
+		super(props);
+		this.state = {
+			selectedType: switch Type.typeof(props.value) {
+				case TClass(String): PTString(true);
+				case TClass(Array): PTArray(true);
+				case TBool: PTBool(true);
+				case TFloat: PTNumber(true);
+				case TInt: PTInteger(true);
+				case TObject: PTObject(true);
+				default:
+					// We should probably handle unknown values more gracefully.
+					PTString(true);
+			}
+		};
+	}
+
+	override public function render() {
+		var field = ContentEditorForm.renderField(
+			props.name,
+			state.selectedType,
+			props.value,
+			props.onChange
+		);
+		var types = getTypes();[
+			'String' => PTString(true),
+			'Number' => PTNumber(true),
+			'Integer' => PTInteger(true),
+			'Bool' => PTBool(true),
+			'Array' => PTArray(true),
+			'Object' => PTObject(true),
+		];
+		function onChange(val) {
+			setState({selectedType: val});
+		}
+		return jsx('<div>
+			<SelectValues values=${types} selected=${state.selectedType} onChange=${onChange} />
+			${field}
+		</div>');
+	}
+
+	function getTypes() {
+		var types = new Map();
+		for (typeValue in props.types) {
+			var label = getLabelFromType(typeValue);
+			types.set(label, typeValue);
+		}
+		return types;
+	}
+
+	function getLabelFromType(type) {
+		return switch type {
+			case PTString(_): 'String';
+			case PTNumber(_): 'Number';
+			case PTInteger(_): 'Integer';
+			case PTBool(_): 'Boolean';
+			case PTArray(_): 'Array';
+			case PTObject(_): 'Object';
+			case PTShape(_): 'Shaped Object';
+			case PTOneOf(_): 'One of';
+			case PTOneOfType(types, _): 'Either ${types.map(getLabelFromType).join(", ")}';
+			case PTArrayOf(sub, _): 'Array of ${getLabelFromType(sub)}';
+			case PTObjectOf(sub, _): 'Object of ${getLabelFromType(sub)}';
+			case PTAny(_): 'Any';
+		}
+	}
+}
+
+class SelectValues<T> extends UniversalComponent<{values: Map<String, T>, selected: T, onChange: T->Void}, {}> {
+	override public function render() {
+		var options = [];
+		var selectedLabel = null;
+		for (label in props.values.keys()) {
+			options.push(jsx('<option key=${label} value=${label}>
+				${label}
+			</option>'));
+			if (props.values[label] == props.selected || Type.enumEq(props.values[label], props.selected)) {
+				selectedLabel = label;
+			}
+		}
+		function onChange(e) {
+			props.onChange(props.values[e.target.value]);
+		}
+		return jsx('<select onChange=${onChange} value=${selectedLabel}>
+			${options}
+		</select>');
 	}
 }
