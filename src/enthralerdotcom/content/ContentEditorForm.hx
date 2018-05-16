@@ -3,6 +3,8 @@ package enthralerdotcom.content;
 import smalluniverse.UniversalComponent;
 import smalluniverse.SUMacro.jsx;
 import enthraler.proptypes.PropTypes;
+import enthralerdotcom.components.IconButton;
+import enthralerdotcom.components.AutoSizeTextArea;
 
 typedef ContentEditorFormProps<Content> = {
 	content: Content,
@@ -11,6 +13,10 @@ typedef ContentEditorFormProps<Content> = {
 }
 
 class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormProps<Content>, {}> {
+	override public function componentDidMount() {
+		Webpack.require('./ContentEditorForm.scss');
+	}
+
 	override public function render() {
 		var fields = [for (name in props.schema.keys()) {
 			var value: Dynamic = Reflect.field(props.content, name);
@@ -25,19 +31,28 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 		}];
 		return jsx('<div>
 			<h2>Form</h2>
-			<div>${fields}</div>
+			${fields}
 		</div>');
 	}
 
-	public static function renderField(name: String, type: PropTypeEnum, value: Dynamic, onChange: Dynamic->Void) {
-		var input = switch type {
+	public static function renderField(name: String, type: PropTypeEnum, value: Dynamic, onChange: Dynamic->Void, ?hideLabel = false) {
+		function withLabel(input) {
+			if (hideLabel) {
+				return input;
+			}
+			return jsx('<div key=${name} className="ContentEditorForm__labelContainer">
+				<label className="ContentEditorForm__label">${name}:</label>
+				${input}
+			</div>');
+		}
+		return switch type {
 			case PTArray(optional): jsx('<ArrayForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
-			case PTBool(optional): jsx('<Checkbox value=${value} onChange=${onChange} />');
-			case PTNumber(optional): jsx('<IntInput value=${value} onChange=${onChange} />');
-			case PTInteger(optional): jsx('<FloatInput value=${value} onChange=${onChange} />');
+			case PTBool(optional): withLabel(jsx('<Checkbox value=${value} onChange=${onChange} />'));
+			case PTNumber(optional): withLabel(jsx('<IntInput value=${value} onChange=${onChange} />'));
+			case PTInteger(optional): withLabel(jsx('<FloatInput value=${value} onChange=${onChange} />'));
 			case PTObject(optional): jsx('<ObjectForm name=${name} subType=${PTAny(true)} value=${value} onChange=${onChange} />');
-			case PTString(optional): jsx('<TextInput value=${value} onChange=${onChange}></TextInput>');
-			case PTOneOf(values, optional): jsx('<SelectInput options=${values} value=${value} onChange=${onChange}></SelectInput>');
+			case PTString(optional): withLabel(jsx('<TextInput value=${value} onChange=${onChange}></TextInput>'));
+			case PTOneOf(values, optional): withLabel(jsx('<SelectInput options=${values} value=${value} onChange=${onChange}></SelectInput>'));
 			case PTOneOfType(types, optional): jsx('<OneOfTypeForm name=${name} types=${types} value=${value} onChange=${onChange} />');
 			case PTArrayOf(subType, optional): jsx('<ArrayForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
 			case PTObjectOf(subType, optional): jsx('<ObjectForm name=${name} subType=${subType} value=${value} onChange=${onChange} />');
@@ -51,7 +66,6 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 				PTObject(true),
 			]} value=${value} onChange=${onChange} />');
 		};
-		return jsx('<div key=${name}><label>${name}: ${input}</label></div>');
 	}
 
 	static function getDefaultValue(type: PropTypeEnum): Dynamic {
@@ -78,8 +92,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 	}
 
 	static function TextInput(props: {value: String, onChange: String->Void}) {
-		var onChange = function (e) props.onChange(e.target.value);
-		return jsx('<textarea value=${props.value} onChange=${onChange}></textarea>');
+		return jsx('<AutoSizeTextArea value=${props.value} onChange=${props.onChange}></AutoSizeTextArea>');
 	}
 
 	static function SelectInput(props: {options: Array<Dynamic>, value: Dynamic, onChange: Dynamic->Void}) {
@@ -156,12 +169,13 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 				array.insert(i + 1, currentElement);
 				props.onChange(array);
 			}
-			var field = renderField('Item $i', subType, itemValue, onChange);
-			jsx('<div>
+			var field = renderField('$i', subType, itemValue, onChange, true);
+			jsx('<div className="ArrayForm__container" key=${i}>
+				<IconButton onClick=${moveUp} text="Move Up">⬆️</IconButton>
+				<IconButton onClick=${moveDown} text="Move Down">⬇️</IconButton>
+				<span>${i}:</span>
 				${field}
-				<button onClick=${moveUp}>Move up</button>
-				<button onClick=${moveDown}>Move down</button>
-				<button onClick=${delete}>Delete</button>
+				<IconButton onClick=${delete} text="Delete Item">🚮</IconButton>
 			</div>');
 		}];
 		function addItem() {
@@ -172,7 +186,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			<fieldset>
 				<legend>${props.name}</legend>
 				${fields}
-				<button onClick=${addItem}>Add</button>
+				<IconButton onClick=${addItem} text="Add Item">➕</IconButton>
 			</fieldset>
 		</div>');
 	}
@@ -199,11 +213,11 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 				Reflect.deleteField(object, key);
 				props.onChange(object);
 			}
-			var field = renderField(key, subType, itemValue, onChangeValue);
-			jsx('<div>
+			var field = renderField(key, subType, itemValue, onChangeValue, true);
+			jsx('<div key=${key} className="ObjectForm__container">
 				<input type="text" onChange=${onChangeName} value=${key} />
 				${field}
-				<button onClick=${delete}>Delete</button>
+				<IconButton onClick=${delete} text="Delete Field">🚮</IconButton>
 			</div>');
 		}];
 		function addItem() {
@@ -214,7 +228,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			<fieldset>
 				<legend>${props.name}</legend>
 				${fields}
-				<button onClick=${addItem}>Add</button>
+				<IconButton onClick=${addItem} text="Add Field">➕</IconButton>
 			</fieldset>
 		</div>');
 	}
@@ -263,7 +277,7 @@ class OneOfTypeForm extends UniversalComponent<{
 		function onChange(val) {
 			setState({selectedType: val});
 		}
-		return jsx('<div>
+		return jsx('<div className="OneOfTypeForm__container">
 			<SelectValues values=${types} selected=${state.selectedType} onChange=${onChange} />
 			${field}
 		</div>');
