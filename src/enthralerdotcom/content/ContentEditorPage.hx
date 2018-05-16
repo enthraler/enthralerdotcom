@@ -203,6 +203,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			authorData = Json.parse(newJson);
 		} catch (e:Dynamic) {
 			this.setState(Merge.object(this.state, {
+				contentJson: newJson,
 				validationResult: [
 					new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))
 				],
