@@ -1,4 +1,11 @@
+@import '../Constants.scss';
+
 .AutoSizeTextArea__textarea {
 	// Will be overridden by JS.
-	height: 24px;
+	height: $grid;
+	border: $border;
+	resize: vertical;
+	box-sizing: border-box;
+	padding: $inputPadding;
+	border-radius: $borderRadius;
 }

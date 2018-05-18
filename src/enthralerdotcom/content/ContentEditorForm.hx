@@ -42,7 +42,7 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			}
 			return jsx('<div key=${name} className="ContentEditorForm__labelContainer">
 				<label className="ContentEditorForm__label">${name}:</label>
-				${input}
+				<span className="ContentEditorForm__field">${input}</span>
 			</div>');
 		}
 		return switch type {
@@ -129,11 +129,9 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 			};
 			renderField(name, type, fieldValue, onChange);
 		}];
-		return jsx('<div>
-			<fieldset>
-				<legend>${props.name}</legend>
-				${fields}
-			</fieldset>
+		return jsx('<div className="ContentEditorForm__section">
+			<h3 class="ContentEditorForm__h3">${props.name}</h3>
+			${fields}
 		</div>');
 	}
 
@@ -169,26 +167,25 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 				array.insert(i + 1, currentElement);
 				props.onChange(array);
 			}
-			var field = renderField('$i', subType, itemValue, onChange, true);
-			jsx('<div className="ArrayForm__container" key=${i}>
-				<IconButton onClick=${moveUp} text="Move Up">⬆️</IconButton>
-				<IconButton onClick=${moveDown} text="Move Down">⬇️</IconButton>
-				<span>${i}:</span>
+			var field = renderField('${props.name} ($i)', subType, itemValue, onChange, true);
+			jsx('<div key=${i}>
+				<div className="ArrayForm__toolbar">
+					<IconButton onClick=${moveUp} text="Move Up">⬆️</IconButton>
+					<IconButton onClick=${moveDown} text="Move Down">⬇️</IconButton>
+					<IconButton onClick=${delete} text="Delete Item">🚮</IconButton>
+				</div>
 				${field}
-				<IconButton onClick=${delete} text="Delete Item">🚮</IconButton>
 			</div>');
 		}];
 		function addItem() {
 			array.push(getDefaultValue(subType));
 			props.onChange(array);
 		}
-		return jsx('<div>
-			<fieldset>
-				<legend>${props.name}</legend>
-				${fields}
-				<IconButton onClick=${addItem} text="Add Item">➕</IconButton>
-			</fieldset>
-		</div>');
+		return jsx('<section classame="ContentEditorForm__section">
+			<h3 className="ContentEditorForm__h3">${props.name} <small>(Multiple Items)</small></h3>
+			${fields}
+			<p><IconButton onClick=${addItem} text="Add Item">➕</IconButton></p>
+		</section>');
 	}
 
 	static function ObjectForm(props: {name: String, subType: PropTypeEnum, value: Dynamic<Dynamic>, onChange: Dynamic<Dynamic>->Void}) {
@@ -197,39 +194,43 @@ class ContentEditorForm<Content> extends UniversalComponent<ContentEditorFormPro
 		if (object == null || !Type.typeof(object).match(TObject)) {
 			object = {};
 		}
-		var fields = [for (key in Reflect.fields(object)) {
-			var itemValue = Reflect.field(object, key);
+		var i = 0;
+		var fields = [for (propName in Reflect.fields(object)) {
+			var itemValue = Reflect.field(object, propName);
 			function onChangeValue(newItemValue: Dynamic) {
-				Reflect.setField(object, key, newItemValue);
+				Reflect.setField(object, propName, newItemValue);
 				props.onChange(object);
 			}
 			function onChangeName(e) {
-				var newItemName = e.target.value;
-				Reflect.deleteField(object, key);
-				Reflect.setField(object, newItemName, itemValue);
+				var newPropName = e.target.value;
+				if (newPropName == propName) {
+					return;
+				}
+
+				var value = Reflect.field(object, propName);
+				Reflect.deleteField(object, propName);
+				Reflect.setField(object, newPropName, value);
 				props.onChange(object);
 			}
 			function delete() {
-				Reflect.deleteField(object, key);
+				Reflect.deleteField(object, propName);
 				props.onChange(object);
 			}
-			var field = renderField(key, subType, itemValue, onChangeValue, true);
-			jsx('<div key=${key} className="ObjectForm__container">
-				<input type="text" onChange=${onChangeName} value=${key} />
+			var field = renderField(propName, subType, itemValue, onChangeValue, true);
+			jsx('<div key=${i} className="ObjectForm__container">
+				<input type="text" onChange=${onChangeName} defaultValue=${propName} />
 				${field}
 				<IconButton onClick=${delete} text="Delete Field">🚮</IconButton>
 			</div>');
 		}];
 		function addItem() {
-			Reflect.setField(object, '', '');
+			Reflect.setField(object, 'untitled', getDefaultValue(subType));
 			props.onChange(object);
 		}
-		return jsx('<div>
-			<fieldset>
-				<legend>${props.name}</legend>
-				${fields}
-				<IconButton onClick=${addItem} text="Add Field">➕</IconButton>
-			</fieldset>
+		return jsx('<div className="ContentEditorForm__section">
+			<h3 class="ContentEditorForm__h3">${props.name} <small>(Multiple Named Items)</small></h3>
+			${fields}
+			<IconButton onClick=${addItem} text="Add Field">➕</IconButton>
 		</div>');
 	}
 }
