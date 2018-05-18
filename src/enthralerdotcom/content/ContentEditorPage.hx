@@ -67,9 +67,15 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		return Future.async(function (handler:Outcome<String,Error>->Void) {
 			var h = new haxe.Http(url);
 			var status = null;
-			h.onStatus = function (s) status = s;
-			h.onData = function (result) handler(Success(result));
-			h.onError = function (errMessage) handler(Failure(new Error(status, errMessage)));
+			h.onStatus = function (s) {
+				status = s;
+			}
+			h.onData = function (result) {
+				handler(Success(result));
+			}
+			h.onError = function (errMessage) {
+				handler(Failure(new Error(status, errMessage)));
+			}
 			h.request(false);
 		});
 	}
@@ -79,7 +85,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 		this.setState({
 			contentJson: this.props.currentVersion.jsonContent,
 			contentTitle: this.props.content.title,
-			contentData: null,
+			contentData: Json.parse(this.props.currentVersion.jsonContent),
 			validationResult: null,
 			schema: null
 		});
@@ -101,6 +107,9 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	override function render() {
 		this.head.setTitle('Content Editor');
+		if (this.state == null) {
+			return jsx('<div>Loading</div>');
+		}
 		var iframeSrc = (props.currentVersion.versionId != null)
 			? '/i/${props.content.guid}/embed/${props.currentVersion.versionId}'
 			: '/i/new/${props.template.id}/embed/';
@@ -110,7 +119,7 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			maxWidth: '100%',
 			height: '350px'
 		};
-		var contentTitle = (this.state != null) ? this.state.contentTitle : this.props.content.title;
+		var contentTitle = this.state.contentTitle;
 		return jsx('<div className="container">
 			<HeaderNav></HeaderNav>
 			<h1 className="title"><label htmlFor="content-title">Title:</label></h1>
@@ -126,7 +135,8 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 			</div>
 			<div className="columns">
 				<div className="column editor">
-					<CodeMirrorEditor content=${this.props.currentVersion.jsonContent} onChange=${onEditorChange}></CodeMirrorEditor>
+					<ContentEditorForm content=${state.contentData} onChange=${onFormChange} schema=${state.schema} />
+					<CodeMirrorEditor content=${state.contentJson} onChange=${onEditorChange}></CodeMirrorEditor>
 				</div>
 				<div className="column">
 					${renderErrorList()}
@@ -187,14 +197,34 @@ class ContentEditorPage extends UniversalPage<ContentEditorAction, ContentEditor
 
 	@:client
 	function onEditorChange(newJson:String) {
-		var validationResult = null,
-			authorData = null;
+		var authorData = null;
 
 		try {
 			authorData = Json.parse(newJson);
 		} catch (e:Dynamic) {
 			js.Browser.console.error(e);
-			validationResult = [new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))];
+			this.setState(Merge.object(this.state, {
+				contentJson: newJson,
+				validationResult: [
+					new ValidationError('JSON syntax error: ' + e, AccessProperty('document'))
+				],
+			}));
+		}
+		if (authorData != null) {
+			onNewContent(authorData, newJson);
+		}
+	}
+
+	@:client
+	function onFormChange(authorData) {
+		onNewContent(authorData, Json.stringify(authorData, null, "\t"));
+	}
+
+	@:client
+	function onNewContent(authorData, newJson) {
+		var validationResult = null;
+		if (this.state.schema != null) {
+			validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');
 		}
 		if (this.state.schema != null && validationResult == null) {
 			validationResult = Validators.validate(this.state.schema, authorData, 'live JSON editor');

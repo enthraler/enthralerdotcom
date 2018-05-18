@@ -1,0 +1,25 @@
+$grid: 24px;
+
+.IconButton__btn {
+	box-sizing: border-box;
+	background: white;
+	display: block;
+	border: none;
+	height: $grid;
+	width: $grid;
+	font-size: $grid - 2px;
+	line-height: $grid;
+	padding: 0;
+	overflow: hidden;
+	text-align: center;
+}
+
+.IconButton__srOnly {
+	position: relative;
+	top: -10000px;
+	left: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	opacity: 0;
+}

@@ -68,7 +68,7 @@ class HomePage extends UniversalPage<HomeAction, {}, {}> {
 				<div id="mc_embed_signup_scroll">
 					<!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
 					<div className="field">
-						<label className="label" for="mce-EMAIL">Subscribe to our mailing list to get early access</label>
+						<label className="label" htmlFor="mce-EMAIL">Subscribe to our mailing list to get early access</label>
 						<div className="control">
 							<input type="email" value="" name="EMAIL" className="input" id="mce-EMAIL" placeholder="email address" required="required" />
 						</div>

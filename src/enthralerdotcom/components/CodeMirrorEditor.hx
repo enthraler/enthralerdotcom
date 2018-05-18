@@ -22,6 +22,13 @@ class CodeMirrorEditor extends UniversalComponent<CodeMirrorEditorProps, {}> {
 		</div>');
 	}
 
+	@:client
+	override function componentDidUpdate(prevProps, prevState) {
+		if (this.editor.getValue() != props.content) {
+			editor.setValue(props.content);
+		}
+	}
+
 	override function componentDidMount() {
 		setupCodeMirror();
 	}
